@@ -543,7 +543,7 @@ class TestTfidfVectorizer(FixtureTest):
     def test_limit_vocabulary_should_raise(self):
         # Given
         vectorizer = TfidfVectorizer()
-        dataset = {"language": "en", "entities": dict(), "intents": dict()}
+        dataset = {"language": "en", "entities": {}, "intents": {}}
         utterances = [text_to_utterance("5 55 6 66 666")]
 
         vectorizer.fit(utterances, dataset)

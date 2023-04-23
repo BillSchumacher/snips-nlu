@@ -29,7 +29,7 @@ def load_resources(name, required_resources=None):
             dict which, when provided, allows to limit the amount of resources
             to load. By default, all existing resources are loaded.
     """
-    if name in set(d.name for d in DATA_PATH.iterdir()):
+    if name in {d.name for d in DATA_PATH.iterdir()}:
         return load_resources_from_dir(DATA_PATH / name, required_resources)
     elif is_package(name):
         package_path = get_package_path(name)
@@ -90,12 +90,14 @@ def _update_metadata(metadata, required_resources):
     required_word_clusters = required_resources.get(WORD_CLUSTERS, [])
     for gazetter in required_gazetteers:
         if gazetter not in metadata["gazetteers"]:
-            raise ValueError("Unknown gazetteer for language '%s': '%s'"
-                             % (metadata["language"], gazetter))
+            raise ValueError(
+                f"""Unknown gazetteer for language '{metadata["language"]}': '{gazetter}'"""
+            )
     for word_clusters in required_word_clusters:
         if word_clusters not in metadata["word_clusters"]:
-            raise ValueError("Unknown word clusters for language '%s': '%s'"
-                             % (metadata["language"], word_clusters))
+            raise ValueError(
+                f"""Unknown word clusters for language '{metadata["language"]}': '{word_clusters}'"""
+            )
     metadata["gazetteers"] = required_gazetteers
     metadata["word_clusters"] = required_word_clusters
     if not required_resources.get(STEMS, False):
@@ -150,8 +152,7 @@ def get_word_cluster(resources, cluster_name):
 def get_gazetteer(resources, gazetteer_name):
     gazetteers = _get_resource(resources, GAZETTEERS)
     if gazetteer_name not in gazetteers:
-        raise MissingResource("Gazetteer '%s' not found in resources"
-                              % gazetteer_name)
+        raise MissingResource(f"Gazetteer '{gazetteer_name}' not found in resources")
     return gazetteers[gazetteer_name]
 
 
@@ -161,10 +162,10 @@ def get_stems(resources):
 
 def merge_required_resources(lhs, rhs):
     if not lhs:
-        return dict() if rhs is None else rhs
+        return {} if rhs is None else rhs
     if not rhs:
-        return dict() if lhs is None else lhs
-    merged_resources = dict()
+        return {} if lhs is None else lhs
+    merged_resources = {}
     if lhs.get(NOISE, False) or rhs.get(NOISE, False):
         merged_resources[NOISE] = True
     if lhs.get(STOP_WORDS, False) or rhs.get(STOP_WORDS, False):
@@ -176,12 +177,13 @@ def merge_required_resources(lhs, rhs):
     parser_usage = CustomEntityParserUsage.merge_usages(
         lhs_parser_usage, rhs_parser_usage)
     merged_resources[CUSTOM_ENTITY_PARSER_USAGE] = parser_usage
-    gazetteers = lhs.get(GAZETTEERS, set()).union(rhs.get(GAZETTEERS, set()))
-    if gazetteers:
+    if gazetteers := lhs.get(GAZETTEERS, set()).union(
+        rhs.get(GAZETTEERS, set())
+    ):
         merged_resources[GAZETTEERS] = gazetteers
-    word_clusters = lhs.get(WORD_CLUSTERS, set()).union(
-        rhs.get(WORD_CLUSTERS, set()))
-    if word_clusters:
+    if word_clusters := lhs.get(WORD_CLUSTERS, set()).union(
+        rhs.get(WORD_CLUSTERS, set())
+    ):
         merged_resources[WORD_CLUSTERS] = word_clusters
     return merged_resources
 
@@ -242,7 +244,7 @@ def persist_resources(resources, resources_dest_path, required_resources):
 
 def _get_resource(resources, resource_name):
     if resource_name not in resources or resources[resource_name] is None:
-        raise MissingResource("Resource '%s' not found" % resource_name)
+        raise MissingResource(f"Resource '{resource_name}' not found")
     return resources[resource_name]
 
 
@@ -255,7 +257,7 @@ def _get_stop_words(resources_dir, stop_words_filename):
 
 def _load_stop_words(stop_words_path):
     with stop_words_path.open(encoding="utf8") as f:
-        stop_words = set(l.strip() for l in f if l)
+        stop_words = {l.strip() for l in f if l}
     return stop_words
 
 
@@ -290,9 +292,9 @@ def _persist_noise(noise, path):
 
 def _get_word_clusters(word_clusters_dir, clusters_names):
     if not clusters_names:
-        return dict()
+        return {}
 
-    clusters = dict()
+    clusters = {}
     for clusters_name in clusters_names:
         clusters_path = (word_clusters_dir / clusters_name).with_suffix(".txt")
         clusters[clusters_name] = _load_word_clusters(clusters_path)
@@ -300,13 +302,11 @@ def _get_word_clusters(word_clusters_dir, clusters_names):
 
 
 def _load_word_clusters(path):
-    clusters = dict()
+    clusters = {}
     with path.open(encoding="utf8") as f:
         for line in f:
-            split = line.rstrip().split("\t")
-            if not split:
-                continue
-            clusters[split[0]] = split[1]
+            if split := line.rstrip().split("\t"):
+                clusters[split[0]] = split[1]
     return clusters
 
 
@@ -318,9 +318,9 @@ def _persist_word_clusters(word_clusters, path):
 
 def _get_gazetteers(gazetteers_dir, gazetteer_names):
     if not gazetteer_names:
-        return dict()
+        return {}
 
-    gazetteers = dict()
+    gazetteers = {}
     for gazetteer_name in gazetteer_names:
         gazetteer_path = (gazetteers_dir / gazetteer_name).with_suffix(".txt")
         gazetteers[gazetteer_name] = _load_gazetteer(gazetteer_path)
@@ -329,7 +329,7 @@ def _get_gazetteers(gazetteers_dir, gazetteer_names):
 
 def _load_gazetteer(path):
     with path.open(encoding="utf8") as f:
-        gazetteer = set(v.strip() for v in f if v)
+        gazetteer = {v.strip() for v in f if v}
     return gazetteer
 
 
@@ -350,7 +350,7 @@ def _get_stems(stems_dir, filename):
 
 def _load_stems(path):
     with path.open(encoding="utf8") as f:
-        stems = dict()
+        stems = {}
         for line in f:
             elements = line.strip().split(',')
             stem = elements[0]

@@ -235,8 +235,7 @@ utterances:
         for language in get_all_languages():
             # When
             config = DEFAULT_CONFIGS.get(language)
-            self.assertIsNotNone(config, "Missing default config for '%s'"
-                                 % language)
+            self.assertIsNotNone(config, f"Missing default config for '{language}'")
             dataset[LANGUAGE] = language
             shared = self.get_shared_data(dataset)
             engine = SnipsNLUEngine(config, **shared).fit(dataset)

@@ -446,11 +446,10 @@ class TestCRFUtils(SnipsTest):
         slot_name = "animal"
         slot_size = 0
 
-        # When
-        tags = []
-        for scheme in TaggingScheme:
-            tags.append(positive_tagging(scheme, slot_name, slot_size))
-
+        tags = [
+            positive_tagging(scheme, slot_name, slot_size)
+            for scheme in TaggingScheme
+        ]
         # Then
         expected_tags = [[]] * len(TaggingScheme)
         self.assertEqual(tags, expected_tags)

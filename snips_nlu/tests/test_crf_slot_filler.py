@@ -288,12 +288,8 @@ utterances:
 
         # When
         naughty_dataset = {
-            "intents": {
-                "naughty_intent": {
-                    "utterances": utterances
-                }
-            },
-            "entities": dict(),
+            "intents": {"naughty_intent": {"utterances": utterances}},
+            "entities": {},
             "language": "en",
         }
 
@@ -304,7 +300,7 @@ utterances:
 
     def test_should_fit_and_parse_with_non_ascii_tags(self):
         # Given
-        inputs = ("string%s" % i for i in range(10))
+        inputs = (f"string{i}" for i in range(10))
         utterances = [{
             DATA: [{
                 TEXT: string,
@@ -775,20 +771,10 @@ utterances:
         # Given
         dataset = {
             "intents": {
-                "dummy_intent": {
-                    "utterances": [
-                        {
-                            "data": [
-                                {
-                                    "text": " "
-                                }
-                            ]
-                        }
-                    ]
-                }
+                "dummy_intent": {"utterances": [{"data": [{"text": " "}]}]}
             },
             "language": "en",
-            "entities": dict()
+            "entities": {},
         }
 
         slot_filler = CRFSlotFiller(**self.get_shared_data(dataset))

@@ -112,7 +112,7 @@ class CustomEntityParser(EntityParser):
 
 
 def _stem_entity_utterances(entity_utterances, language, resources):
-    values = dict()
+    values = {}
     # Sort by resolved value, so that values conflict in a deterministic way
     for raw_value, resolved_value in sorted(
             iteritems(entity_utterances), key=operator.itemgetter(1)):
@@ -151,10 +151,11 @@ def _create_custom_entity_parser_configuration(
 
     parser_configurations = []
     for entity_name, entity in sorted(iteritems(entities)):
-        vocabulary = set(
-            t for raw_value in entity[UTTERANCES]
+        vocabulary = {
+            t
+            for raw_value in entity[UTTERANCES]
             for t in tokenize_light(raw_value, language)
-        )
+        }
         num_stopwords = int(stopwords_fraction * len(vocabulary))
         config = {
             "entity_identifier": entity_name,
@@ -173,11 +174,7 @@ def _create_custom_entity_parser_configuration(
             config["entity_parser"][LICENSE_INFO] = entity[LICENSE_INFO]
         parser_configurations.append(config)
 
-    configuration = {
-        "entity_parsers": parser_configurations
-    }
-
-    return configuration
+    return {"entity_parsers": parser_configurations}
 
 
 def _compute_char_shifts(tokens):

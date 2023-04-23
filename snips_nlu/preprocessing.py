@@ -59,11 +59,15 @@ class Token(object):
         self.stemmed_value = stemmed_value
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return False
-        return (self.value == other.value
+        return (
+            (
+                self.value == other.value
                 and self.start == other.start
-                and self.end == other.end)
+                and self.end == other.end
+            )
+            if isinstance(other, type(self))
+            else False
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -81,11 +85,14 @@ def tokenize(string, language):
     """
     from snips_nlu_utils import tokenize as _tokenize
 
-    tokens = [Token(value=token["value"],
-                    start=token["char_range"]["start"],
-                    end=token["char_range"]["end"])
-              for token in _tokenize(string, language)]
-    return tokens
+    return [
+        Token(
+            value=token["value"],
+            start=token["char_range"]["start"],
+            end=token["char_range"]["end"],
+        )
+        for token in _tokenize(string, language)
+    ]
 
 
 def tokenize_light(string, language):
@@ -93,5 +100,4 @@ def tokenize_light(string, language):
         of :class:`Token` objects"""
     from snips_nlu_utils import tokenize_light as _tokenize_light
 
-    tokenized_string = _tokenize_light(string, language)
-    return tokenized_string
+    return _tokenize_light(string, language)

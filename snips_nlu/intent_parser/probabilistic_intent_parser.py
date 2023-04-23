@@ -36,7 +36,7 @@ class ProbabilisticIntentParser(IntentParser):
         :class:`.ProbabilisticIntentParserConfig`"""
         super(ProbabilisticIntentParser, self).__init__(config, **shared)
         self.intent_classifier = None
-        self.slot_fillers = dict()
+        self.slot_fillers = {}
 
     @property
     def fitted(self):
@@ -48,7 +48,6 @@ class ProbabilisticIntentParser(IntentParser):
 
     @log_elapsed_time(logger, logging.INFO,
                       "Fitted probabilistic intent parser in {elapsed_time}")
-    # pylint:disable=arguments-differ
     def fit(self, dataset, force_retrain=True):
         """Fits the probabilistic intent parser
 
@@ -77,7 +76,7 @@ class ProbabilisticIntentParser(IntentParser):
             self.intent_classifier.fit(dataset)
 
         if self.slot_fillers is None:
-            self.slot_fillers = dict()
+            self.slot_fillers = {}
         slot_fillers_start = datetime.now()
         for intent_name in intents:
             # We need to copy the slot filler config as it may be mutated
@@ -190,7 +189,7 @@ class ProbabilisticIntentParser(IntentParser):
         sorted_slot_fillers = sorted(iteritems(self.slot_fillers))
         slot_fillers = []
         for i, (intent, slot_filler) in enumerate(sorted_slot_fillers):
-            slot_filler_name = "slot_filler_%s" % i
+            slot_filler_name = f"slot_filler_{i}"
             slot_filler.persist(path / slot_filler_name)
             slot_fillers.append({
                 "intent": intent,
@@ -221,8 +220,8 @@ class ProbabilisticIntentParser(IntentParser):
         model_path = path / "intent_parser.json"
         if not model_path.exists():
             raise LoadingError(
-                "Missing probabilistic intent parser model file: %s"
-                % model_path.name)
+                f"Missing probabilistic intent parser model file: {model_path.name}"
+            )
 
         with model_path.open(encoding="utf8") as f:
             model = json.load(f)
@@ -236,7 +235,7 @@ class ProbabilisticIntentParser(IntentParser):
             classifier = IntentClassifier.load_from_path(
                 intent_classifier_path, classifier_unit_name, **shared)
 
-        slot_fillers = dict()
+        slot_fillers = {}
         slot_filler_unit_name = config.slot_filler_config.unit_name
         for slot_filler_conf in model["slot_fillers"]:
             intent = slot_filler_conf["intent"]

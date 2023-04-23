@@ -1023,7 +1023,7 @@ class TestDatasetValidation(SnipsTest):
                     {"value": str(i), "synonyms": []}
                     for i in range(num_ents)]
             }
-            builtin_entity_parser = EntityParserMock(dict())
+            builtin_entity_parser = EntityParserMock({})
             with patch("snips_nlu.dataset.validation"
                        ".get_string_variations") as mocked_string_variations:
                 mocked_string_variations.return_value = []

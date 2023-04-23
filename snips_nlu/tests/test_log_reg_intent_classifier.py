@@ -475,8 +475,7 @@ utterances:
         self.assertIsInstance(log, str)
         self.assertIn("Top 20", log)
 
-    @skipIf(sys.version_info[0:2] < (3, 5),
-            "The bug fixed here "
+    @skipIf(sys.version_info[:2] < (3, 5), "The bug fixed here "
             "https://github.com/scikit-learn/scikit-learn/pull/13422 is "
             "available for scikit-learn>=0.21.0 in which the support for "
             "Python<=3.4 has been dropped")

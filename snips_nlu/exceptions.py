@@ -14,8 +14,8 @@ class IncompatibleModelError(Exception):
 
     def __init__(self, persisted_version):
         super(IncompatibleModelError, self).__init__(
-            "Incompatible data model: persisted model=%s, python lib model=%s"
-            % (persisted_version, __model_version__))
+            f"Incompatible data model: persisted model={persisted_version}, python lib model={__model_version__}"
+        )
 
 
 class InvalidInputError(Exception):
@@ -31,8 +31,7 @@ class IntentNotFoundError(SnipsNLUError):
     training data"""
 
     def __init__(self, intent):
-        super(IntentNotFoundError, self).__init__("Unknown intent '%s'"
-                                                  % intent)
+        super(IntentNotFoundError, self).__init__(f"Unknown intent '{intent}'")
 
 
 class DatasetFormatError(SnipsNLUError):
@@ -71,11 +70,9 @@ class NotRegisteredError(SnipsNLUError):
 
     def __init__(self, registrable_cls, name=None, registered_cls=None):
         if name is not None:
-            msg = "'%s' has not been registered for type %s. " \
-                  % (name, registrable_cls)
+            msg = f"'{name}' has not been registered for type {registrable_cls}. "
         else:
-            msg = "subclass %s has not been registered for type %s. " \
-                  % (registered_cls, registrable_cls)
+            msg = f"subclass {registered_cls} has not been registered for type {registrable_cls}. "
         msg += "Use @BaseClass.register('my_component') to register a subclass"
         super(NotRegisteredError, self).__init__(msg)
 
@@ -85,8 +82,7 @@ class PersistingError(SnipsNLUError):
     exists"""
 
     def __init__(self, path):
-        super(PersistingError, self).__init__("Path already exists: %s"
-                                              % str(path))
+        super(PersistingError, self).__init__(f"Path already exists: {str(path)}")
 
 
 class LoadingError(SnipsNLUError):

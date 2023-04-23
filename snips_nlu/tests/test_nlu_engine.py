@@ -1215,11 +1215,11 @@ utterances:
             engine = SnipsNLUEngine()
 
             # When / Then
-            msg = "Could not fit engine in '%s'" % language
+            msg = f"Could not fit engine in '{language}'"
             with self.fail_if_exception(msg):
                 engine = engine.fit(dataset)
 
-            msg = "Could not parse in '%s'" % language
+            msg = f"Could not parse in '{language}'"
             with self.fail_if_exception(msg):
                 res = engine.parse(text)
             self.assertEqual("MakeCoffee", res[RES_INTENT][RES_INTENT_NAME])
@@ -1262,20 +1262,10 @@ utterances:
         # Given
         dataset = {
             "intents": {
-                "dummy_intent": {
-                    "utterances": [
-                        {
-                            "data": [
-                                {
-                                    "text": " "
-                                }
-                            ]
-                        }
-                    ]
-                }
+                "dummy_intent": {"utterances": [{"data": [{"text": " "}]}]}
             },
             "language": "en",
-            "entities": dict()
+            "entities": {},
         }
 
         engine = SnipsNLUEngine(resources=self.get_resources("en"))
@@ -1373,8 +1363,7 @@ utterances:
         # Then
         mocked_build_parser.assert_not_called()
 
-    @skipIf(sys.version_info[0:2] < (3, 5),
-            "The bug fixed here "
+    @skipIf(sys.version_info[:2] < (3, 5), "The bug fixed here "
             "https://github.com/scikit-learn/scikit-learn/pull/13422 is "
             "available for scikit-learn>=0.21.0 in which the support for "
             "Python<=3.4 has been dropped")

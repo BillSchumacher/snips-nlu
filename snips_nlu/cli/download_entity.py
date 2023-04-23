@@ -106,13 +106,14 @@ def _download_and_link_entity(long_resource_name, entity_name, language,
         install_remote_package, pretty_print)
     from snips_nlu.common.utils import get_package_path
 
-    full_resource_name = long_resource_name + "_" + language
+    full_resource_name = f"{long_resource_name}_{language}"
     version = get_resources_version(full_resource_name, entity_name,
                                     compatibility)
     entity_alias = get_builtin_entity_shortname(str(entity_name)).lower()
     entity_base_url = _get_entity_base_url(language, entity_alias, version)
-    latest = get_json(entity_base_url + "/latest",
-                      "Latest entity resources version")
+    latest = get_json(
+        f"{entity_base_url}/latest", "Latest entity resources version"
+    )
     latest_url = "{b}/{n}#egg={r}=={v}".format(
         b=entity_base_url, n=latest["filename"], r=full_resource_name,
         v=latest["version"])
@@ -125,26 +126,29 @@ def _download_and_link_entity(long_resource_name, entity_name, language,
         # package, which fails if the resource was just installed via
         # subprocess
         package_path = get_package_path(full_resource_name)
-        link_alias = entity_alias + "_" + language
+        link_alias = f"{entity_alias}_{language}"
         link_path, resources_dir = link_resources(
             full_resource_name, link_alias, force=True,
             resources_path=package_path)
-        pretty_print("%s --> %s" % (str(resources_dir), str(link_path)),
-                     "You can now use the '%s' builtin entity" % entity_name,
-                     title="Linking successful",
-                     level=PrettyPrintLevel.SUCCESS)
+        pretty_print(
+            f"{str(resources_dir)} --> {str(link_path)}",
+            f"You can now use the '{entity_name}' builtin entity",
+            title="Linking successful",
+            level=PrettyPrintLevel.SUCCESS,
+        )
     except:  # pylint:disable=bare-except
         pretty_print(
-            "Creating a shortcut link for '%s' didn't work." % entity_name,
+            f"Creating a shortcut link for '{entity_name}' didn't work.",
             title="The builtin entity resources were successfully downloaded, "
-                  "however linking failed.",
-            level=PrettyPrintLevel.ERROR)
+            "however linking failed.",
+            level=PrettyPrintLevel.ERROR,
+        )
 
 
 def _get_entity_base_url(language, entity_alias, version):
     from snips_nlu import __about__
 
     if not version.startswith("v"):
-        version = "v" + version
+        version = f"v{version}"
     return "/".join(
         [__about__.__entities_download_url__, language, entity_alias, version])

@@ -853,7 +853,7 @@ utterances:
         # When
         naughty_dataset = {
             "intents": {"naughty_intent": {"utterances": utterances}},
-            "entities": dict(),
+            "entities": {},
             "language": "en",
         }
 
@@ -863,7 +863,7 @@ utterances:
 
     def test_should_fit_and_parse_with_non_ascii_tags(self):
         # Given
-        inputs = ["string%s" % i for i in range(10)]
+        inputs = [f"string{i}" for i in range(10)]
         utterances = [
             {
                 DATA: [
@@ -983,10 +983,10 @@ values:
             "entity_scopes": [
                 {
                     "entity_scope": {"builtin": [], "custom": ["city"]},
-                    "intent_group": ["searchFlight"]
+                    "intent_group": ["searchFlight"],
                 }
             ],
-            "stop_words_whitelist": dict()
+            "stop_words_whitelist": {},
         }
         metadata = {"unit_name": "lookup_intent_parser"}
         self.assertJsonContent(self.tmp_file_path / "metadata.json", metadata)
@@ -998,14 +998,16 @@ values:
         parser_dict = {
             "config": {
                 "unit_name": "lookup_intent_parser",
-                "ignore_stop_words": True
+                "ignore_stop_words": True,
             },
             "language_code": "en",
             "map": {
                 hash_str("make coffee"): [0, []],
                 hash_str("prepare % snipsnumber % coffees"): [0, [0]],
-                hash_str("% snipsnumber % teas at % snipstemperature %"):
-                    [1, [0, 1]],
+                hash_str("% snipsnumber % teas at % snipstemperature %"): [
+                    1,
+                    [0, 1],
+                ],
             },
             "slots_names": ["nb_cups", "tea_temperature"],
             "intents_names": ["MakeCoffee", "MakeTea"],
@@ -1015,17 +1017,17 @@ values:
                         "builtin": ["snips/number"],
                         "custom": [],
                     },
-                    "intent_group": ["MakeCoffee"]
+                    "intent_group": ["MakeCoffee"],
                 },
                 {
                     "entity_scope": {
                         "builtin": ["snips/number", "snips/temperature"],
                         "custom": [],
                     },
-                    "intent_group": ["MakeTea"]
+                    "intent_group": ["MakeTea"],
                 },
             ],
-            "stop_words_whitelist": dict()
+            "stop_words_whitelist": {},
         }
         self.tmp_file_path.mkdir()
         metadata = {"unit_name": "lookup_intent_parser"}

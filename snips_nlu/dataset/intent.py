@@ -22,7 +22,7 @@ class Intent(object):
 
     def __init__(self, intent_name, utterances, slot_mapping=None):
         if slot_mapping is None:
-            slot_mapping = dict()
+            slot_mapping = {}
         self.intent_name = intent_name
         self.utterances = utterances
         self.slot_mapping = slot_mapping
@@ -110,19 +110,22 @@ class Intent(object):
 
         object_type = yaml_dict.get("type")
         if object_type and object_type != "intent":
-            raise IntentFormatError("Wrong type: '%s'" % object_type)
+            raise IntentFormatError(f"Wrong type: '{object_type}'")
         intent_name = yaml_dict.get("name")
         if not intent_name:
             raise IntentFormatError("Missing 'name' attribute")
-        slot_mapping = dict()
-        for slot in yaml_dict.get("slots", []):
-            slot_mapping[slot["name"]] = slot["entity"]
-        utterances = [IntentUtterance.parse(u.strip())
-                      for u in yaml_dict["utterances"] if u.strip()]
-        if not utterances:
+        slot_mapping = {
+            slot["name"]: slot["entity"] for slot in yaml_dict.get("slots", [])
+        }
+        if utterances := [
+            IntentUtterance.parse(u.strip())
+            for u in yaml_dict["utterances"]
+            if u.strip()
+        ]:
+            return cls(intent_name, utterances, slot_mapping)
+        else:
             raise IntentFormatError(
                 "Intent must contain at least one utterance")
-        return cls(intent_name, utterances, slot_mapping)
 
     def _complete_slot_name_mapping(self):
         for utterance in self.utterances:
@@ -152,8 +155,12 @@ class Intent(object):
 
     @property
     def entities_names(self):
-        return set(chunk.entity for u in self.utterances
-                   for chunk in u.chunks if isinstance(chunk, SlotChunk))
+        return {
+            chunk.entity
+            for u in self.utterances
+            for chunk in u.chunks
+            if isinstance(chunk, SlotChunk)
+        }
 
 
 class IntentUtterance(object):
@@ -274,9 +281,7 @@ class SM(object):
         self.current = pos + 1
 
     def peek(self):
-        if self.end_of_input:
-            return None
-        return self[0]
+        return None if self.end_of_input else self[0]
 
     def read(self):
         c = self[0]
@@ -291,7 +296,7 @@ class SM(object):
             start = current + key.start if key.start else current
             return self.input[slice(start, key.stop, key.step)]
         else:
-            raise TypeError("Bad key type: %s" % type(key))
+            raise TypeError(f"Bad key type: {type(key)}")
 
 
 def capture_text(state):
@@ -332,8 +337,7 @@ def capture_tagged(state):
     if next_pos < 1:
         raise IntentFormatError(
             "Missing ending ')' in annotated utterance \"%s\"" % state.input)
-    else:
-        tagged_text = state[:next_pos]
-        state.add_tagged(tagged_text)
-        state.move(next_pos)
-        capture_text(state)
+    tagged_text = state[:next_pos]
+    state.add_tagged(tagged_text)
+    state.move(next_pos)
+    capture_text(state)

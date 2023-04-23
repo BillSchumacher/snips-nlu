@@ -150,7 +150,7 @@ class PrefixFactory(SingleFeatureFactory):
 
     @property
     def feature_name(self):
-        return "prefix_%s" % self.prefix_size
+        return f"prefix_{self.prefix_size}"
 
     @property
     def prefix_size(self):
@@ -171,7 +171,7 @@ class SuffixFactory(SingleFeatureFactory):
 
     @property
     def feature_name(self):
-        return "suffix_%s" % self.suffix_size
+        return f"suffix_{self.suffix_size}"
 
     @property
     def suffix_size(self):
@@ -243,7 +243,7 @@ class NgramFactory(SingleFeatureFactory):
 
     @property
     def feature_name(self):
-        return "ngram_%s" % self.n
+        return f"ngram_{self.n}"
 
     def fit(self, dataset, intent):
         self.language = dataset[LANGUAGE]
@@ -271,7 +271,7 @@ class NgramFactory(SingleFeatureFactory):
         return None
 
     def get_required_resources(self):
-        resources = dict()
+        resources = {}
         if self.common_words_gazetteer_name is not None:
             resources[GAZETTEERS] = {self.common_words_gazetteer_name}
         if self.use_stemming:
@@ -315,7 +315,7 @@ class ShapeNgramFactory(SingleFeatureFactory):
 
     @property
     def feature_name(self):
-        return "shape_ngram_%s" % self.n
+        return f"shape_ngram_{self.n}"
 
     def fit(self, dataset, intent):
         self.language = dataset[LANGUAGE]
@@ -360,7 +360,7 @@ class WordClusterFactory(SingleFeatureFactory):
 
     @property
     def feature_name(self):
-        return "word_cluster_%s" % self.cluster_name
+        return f"word_cluster_{self.cluster_name}"
 
     def compute_feature(self, tokens, token_index):
         if self.use_stemming:
@@ -415,7 +415,7 @@ class CustomEntityMatchFactory(CRFFeatureFactory):
                     "Invalid filter '%s', invalid arguments have been ignored:"
                     " %s", ent_filter, e,
                 )
-        self.entity_filter = ent_filter or dict()
+        self.entity_filter = ent_filter or {}
 
     @property
     def entities(self):
@@ -463,8 +463,12 @@ class CustomEntityMatchFactory(CRFFeatureFactory):
             entity_match = self._build_entity_match_fn(entity_name)
 
             for offset in self.offsets:
-                feature = Feature("entity_match_%s" % entity_name,
-                                  entity_match, offset, self.drop_out)
+                feature = Feature(
+                    f"entity_match_{entity_name}",
+                    entity_match,
+                    offset,
+                    self.drop_out,
+                )
                 features.append(feature)
         return features
 
@@ -571,7 +575,7 @@ class BuiltinEntityMatchFactory(CRFFeatureFactory):
             # `builtin_entity`
             builtin_entity_match = self._build_entity_match_fn(builtin_entity)
             for offset in self.offsets:
-                feature_name = "builtin_entity_match_%s" % builtin_entity
+                feature_name = f"builtin_entity_match_{builtin_entity}"
                 feature = Feature(feature_name, builtin_entity_match, offset,
                                   self.drop_out)
                 features.append(feature)

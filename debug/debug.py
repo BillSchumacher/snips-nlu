@@ -59,7 +59,7 @@ def main_debug():
         args.pop("config_path")
         debug_inference(*list(args.values()))
     else:
-        raise ValueError("Invalid mode %s" % mode)
+        raise ValueError(f"Invalid mode {mode}")
 
 
 if __name__ == '__main__':

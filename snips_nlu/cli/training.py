@@ -58,4 +58,4 @@ def train(dataset_path, output_path, config_path=None, verbose=False,
     print("Persisting the engine...")
     engine.persist(output_path)
 
-    print("Saved the trained engine to %s" % output_path)
+    print(f"Saved the trained engine to {output_path}")

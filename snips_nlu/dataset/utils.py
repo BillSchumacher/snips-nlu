@@ -23,9 +23,9 @@ def extract_intent_entities(dataset, entity_filter=None):
     for intent_name, intent_data in iteritems(dataset[INTENTS]):
         for utterance in intent_data[UTTERANCES]:
             for chunk in utterance[DATA]:
-                if ENTITY in chunk:
-                    if entity_filter and not entity_filter(chunk[ENTITY]):
-                        continue
+                if ENTITY in chunk and (
+                    not entity_filter or entity_filter(chunk[ENTITY])
+                ):
                     intent_entities[intent_name].add(chunk[ENTITY])
     return intent_entities
 
@@ -59,9 +59,8 @@ def get_stop_words_whitelist(dataset, stop_words):
     that appear in the stop_words list"""
     entity_values_per_intent = extract_entity_values(
         dataset, apply_normalization=True)
-    stop_words_whitelist = dict()
+    stop_words_whitelist = {}
     for intent, entity_values in iteritems(entity_values_per_intent):
-        whitelist = stop_words.intersection(entity_values)
-        if whitelist:
+        if whitelist := stop_words.intersection(entity_values):
             stop_words_whitelist[intent] = whitelist
     return stop_words_whitelist

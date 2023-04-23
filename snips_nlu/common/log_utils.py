@@ -26,7 +26,7 @@ def log_elapsed_time(logger, level, output_msg=None):
         @wraps(fn)
         def wrapped(*args, **kwargs):
             start = datetime.now()
-            msg_fmt = dict()
+            msg_fmt = {}
             res = fn(*args, **kwargs)
             if "elapsed_time" in output_msg:
                 msg_fmt["elapsed_time"] = datetime.now() - start
@@ -45,7 +45,7 @@ def log_result(logger, level, output_msg=None):
     def get_wrapper(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
-            msg_fmt = dict()
+            msg_fmt = {}
             res = fn(*args, **kwargs)
             if "result" in output_msg:
                 try:

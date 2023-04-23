@@ -334,9 +334,4 @@ def parsed_entity(entity_kind, entity_value, entity_resolved_value,
 
 
 def _convert_range(rng):
-    if isinstance(rng, dict):
-        return rng
-    return {
-        "start": rng[0],
-        "end": rng[1]
-    }
+    return rng if isinstance(rng, dict) else {"start": rng[0], "end": rng[1]}

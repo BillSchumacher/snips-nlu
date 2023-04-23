@@ -54,7 +54,8 @@ class TestCustomEntityParser(FixtureTest):
     def test_should_parse_without_stems(self):
         # Given
         parser = CustomEntityParser.build(
-            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources=dict())
+            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources={}
+        )
         text = "dummy_entity_1 dummy_1 dummy_entity_2 dummy_2"
 
         # When
@@ -169,7 +170,8 @@ class TestCustomEntityParser(FixtureTest):
     def test_should_parse_with_proper_tokenization(self):
         # Given
         parser = CustomEntityParser.build(
-            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources=dict())
+            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources={}
+        )
         text = "  dummy_1?dummy_2"
 
         # When
@@ -202,7 +204,8 @@ class TestCustomEntityParser(FixtureTest):
     def test_should_respect_scope(self):
         # Given
         parser = CustomEntityParser.build(
-            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources=dict())
+            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources={}
+        )
         scope = ["dummy_entity_1"]
         text = "dummy_entity_2"
 
@@ -217,7 +220,8 @@ class TestCustomEntityParser(FixtureTest):
         # Given
         mocked_parse.return_value = []
         parser = CustomEntityParser.build(
-            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources=dict())
+            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources={}
+        )
 
         text = ""
 
@@ -231,7 +235,8 @@ class TestCustomEntityParser(FixtureTest):
     def test_should_be_serializable(self):
         # Given
         parser = CustomEntityParser.build(
-            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources=dict())
+            DATASET, CustomEntityParserUsage.WITHOUT_STEMS, resources={}
+        )
         self.tmp_file_path.mkdir()
         parser_path = self.tmp_file_path / "custom_entity_parser"
         parser.persist(parser_path)

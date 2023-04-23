@@ -37,8 +37,11 @@ def link(origin, link_name, force=False, resources_path=None):
 
     link_path, resources_dir = link_resources(origin, link_name, force,
                                               resources_path)
-    pretty_print("%s --> %s" % (str(resources_dir), str(link_path)),
-                 title="Linking successful", level=PrettyPrintLevel.SUCCESS)
+    pretty_print(
+        f"{str(resources_dir)} --> {str(link_path)}",
+        title="Linking successful",
+        level=PrettyPrintLevel.SUCCESS,
+    )
 
 
 def link_resources(origin, link_name, force, resources_path):
@@ -54,14 +57,14 @@ def link_resources(origin, link_name, force, resources_path):
         resources_path = Path(origin) if resources_path is None \
             else Path(resources_path)
     if not resources_path.exists():
-        raise OSError("%s not found" % str(resources_path))
+        raise OSError(f"{str(resources_path)} not found")
     link_path = DATA_PATH / str(link_name)
     if link_path.is_symlink() and not force:
-        raise OSError("Symlink already exists: %s" % str(link_path))
+        raise OSError(f"Symlink already exists: {str(link_path)}")
     elif link_path.is_symlink():
         link_path.unlink()
     elif link_path.exists():
-        raise OSError("Symlink cannot be overwritten: %s" % str(link_path))
+        raise OSError(f"Symlink cannot be overwritten: {str(link_path)}")
     resources_sub_dir = get_resources_sub_directory(resources_path)
     create_symlink(link_path, resources_sub_dir)
     return link_path, resources_sub_dir

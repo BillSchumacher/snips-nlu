@@ -32,7 +32,7 @@ def _download(args_namespace):
 # https://github.com/explosion/spaCy/blob/master/spacy/cli/download.py
 
 def download(resource_name, direct=False,
-             *pip_args):  # pylint:disable=keyword-arg-before-vararg
+             *pip_args):    # pylint:disable=keyword-arg-before-vararg
 
     """Download compatible language resources"""
     import sys
@@ -45,7 +45,7 @@ def download(resource_name, direct=False,
         version = components[-1]
         url_tail = '{n}-{v}/{n}-{v}.tar.gz#egg={n}=={v}'.format(
             n=name, v=version)
-        download_url = __about__.__download_url__ + '/' + url_tail
+        download_url = f'{__about__.__download_url__}/{url_tail}'
         dl = install_remote_package(download_url, pip_args)
         if dl != 0:
             sys.exit(dl)
@@ -105,7 +105,7 @@ def _download_and_link(resource_alias, resource_fullname, compatibility,
                                     compatibility)
     url_tail = '{r}-{v}/{r}-{v}.tar.gz#egg={r}=={v}'.format(
         r=resource_fullname, v=version)
-    download_url = __about__.__download_url__ + '/' + url_tail
+    download_url = f'{__about__.__download_url__}/{url_tail}'
     exit_code = install_remote_package(download_url, pip_args)
     if exit_code != 0:
         sys.exit(exit_code)
@@ -119,13 +119,15 @@ def _download_and_link(resource_alias, resource_fullname, compatibility,
             resource_fullname, resource_alias, force=True,
             resources_path=package_path)
         if verbose:
-            pretty_print("%s --> %s" % (str(resources_dir), str(link_path)),
-                         title="Linking successful",
-                         level=PrettyPrintLevel.SUCCESS)
+            pretty_print(
+                f"{str(resources_dir)} --> {str(link_path)}",
+                title="Linking successful",
+                level=PrettyPrintLevel.SUCCESS,
+            )
     except OSError as e:  # pylint:disable=bare-except
         pretty_print(
-            "Creating a shortcut link for '%s' didn't work: %s"
-            % (resource_alias, repr(e)),
+            f"Creating a shortcut link for '{resource_alias}' didn't work: {repr(e)}",
             title="The language resources were successfully downloaded, "
-                  "however linking failed.",
-            level=PrettyPrintLevel.ERROR)
+            "however linking failed.",
+            level=PrettyPrintLevel.ERROR,
+        )

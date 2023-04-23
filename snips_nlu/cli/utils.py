@@ -49,7 +49,7 @@ def pretty_print(*texts, **kwargs):
                                                        color=title_color)
     else:
         title = ""
-    message = "\n\n".join([text for text in texts])
+    message = "\n\n".join(list(texts))
     print("\n{title}{message}\n".format(title=title, message=message))
     if exits is not None:
         sys.exit(exits)
@@ -65,37 +65,43 @@ def _color_from_level(level):
     if level == PrettyPrintLevel.SUCCESS:
         return "92"
     else:
-        raise ValueError("Unknown PrettyPrintLevel: %s" % level)
+        raise ValueError(f"Unknown PrettyPrintLevel: {level}")
 
 
 def get_json(url, desc):
     r = requests.get(url)
     if r.status_code != 200:
-        raise OSError("%s: Received status code %s when fetching the resource"
-                      % (desc, r.status_code))
+        raise OSError(
+            f"{desc}: Received status code {r.status_code} when fetching the resource"
+        )
     return r.json()
 
 
 def get_compatibility():
     version = __about__.__version__
     parsed_version = parse_version(version)
-    minor_version = "%s.%s" % (
-        parsed_version["major"], parsed_version["minor"])
+    minor_version = f'{parsed_version["major"]}.{parsed_version["minor"]}'
     table = get_json(__about__.__compatibility__, "Compatibility table")
     nlu_table = table["snips-nlu"]
     compatibility = nlu_table.get(version, nlu_table.get(minor_version))
     if compatibility is None:
-        pretty_print("No compatible resources found for version %s" % version,
-                     title="Resources compatibility error", exits=1,
-                     level=PrettyPrintLevel.ERROR)
+        pretty_print(
+            f"No compatible resources found for version {version}",
+            title="Resources compatibility error",
+            exits=1,
+            level=PrettyPrintLevel.ERROR,
+        )
     return compatibility
 
 
 def get_resources_version(resource_fullname, resource_alias, compatibility):
     if resource_fullname not in compatibility:
-        pretty_print("No compatible resources found for '%s'" % resource_alias,
-                     title="Resources compatibility error", exits=1,
-                     level=PrettyPrintLevel.ERROR)
+        pretty_print(
+            f"No compatible resources found for '{resource_alias}'",
+            title="Resources compatibility error",
+            exits=1,
+            level=PrettyPrintLevel.ERROR,
+        )
     return compatibility[resource_fullname][0]
 
 

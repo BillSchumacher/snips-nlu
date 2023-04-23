@@ -57,18 +57,18 @@ class SnipsTest(TestCase):
             yield
         except Exception:  # pylint: disable=W0703
             trace = tb.format_exc()
-            self.fail("{}\b{}".format(msg, trace))
+            self.fail(f"{msg}\b{trace}")
 
     def assertJsonContent(self, json_path, expected_dict):
         if not json_path.exists():
-            self.fail("Json file not found: %s" % str(json_path))
+            self.fail(f"Json file not found: {str(json_path)}")
         with json_path.open(encoding="utf8") as f:
             data = json.load(f)
         self.assertDictEqual(expected_dict, data)
 
     def assertFileContent(self, path, expected_content):
         if not path.exists():
-            self.fail("File not found: %s" % str(path))
+            self.fail(f"File not found: {str(path)}")
         with path.open(encoding="utf8") as f:
             data = f.read()
         self.assertEqual(expected_content, data)
@@ -209,7 +209,7 @@ class EntityParserMock(EntityParser):
     def __init__(self, entities=None):
         super(EntityParserMock, self).__init__()
         if entities is None:
-            entities = dict()
+            entities = {}
         self.entities = entities
 
     def persist(self, path):

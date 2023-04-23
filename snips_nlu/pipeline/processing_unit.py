@@ -43,7 +43,7 @@ class ProcessingUnit(with_metaclass(ABCMeta, Registrable)):
         elif isinstance(config, dict):
             self.config = self.config_type.from_dict(config)
         else:
-            raise ValueError("Unexpected config type: %s" % type(config))
+            raise ValueError(f"Unexpected config type: {type(config)}")
         if self.config is not None:
             self.config.set_unit_name(self.unit_name)
         self.builtin_entity_parser = shared.get(BUILTIN_ENTITY_PARSER)
@@ -92,8 +92,8 @@ class ProcessingUnit(with_metaclass(ABCMeta, Registrable)):
             metadata_path = unit_path / "metadata.json"
             if not metadata_path.exists():
                 raise LoadingError(
-                    "Missing metadata for processing unit at path %s"
-                    % str(unit_path))
+                    f"Missing metadata for processing unit at path {str(unit_path)}"
+                )
             with metadata_path.open(encoding="utf8") as f:
                 metadata = json.load(f)
             unit_name = metadata["unit_name"]
@@ -162,8 +162,7 @@ class ProcessingUnit(with_metaclass(ABCMeta, Registrable)):
         return self
 
     def persist_metadata(self, path, **kwargs):
-        metadata = {"unit_name": self.unit_name}
-        metadata.update(kwargs)
+        metadata = {"unit_name": self.unit_name} | kwargs
         metadata_json = json_string(metadata)
         with (path / "metadata.json").open(mode="w", encoding="utf8") as f:
             f.write(metadata_json)

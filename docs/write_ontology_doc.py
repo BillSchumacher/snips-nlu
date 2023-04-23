@@ -111,30 +111,41 @@ def _build_supported_languages_table(languages):
 
 
 def _build_supported_entities_table(ontology):
-    en_ontology = None
-    for lang_ontology in ontology:
-        if lang_ontology["language"] == "en":
-            en_ontology = lang_ontology
-            break
+    en_ontology = next(
+        (
+            lang_ontology
+            for lang_ontology in ontology
+            if lang_ontology["language"] == "en"
+        ),
+        None,
+    )
     table = _build_table_cells(
         ["Entity", "Identifier", "Category", "Supported Languages"],
         ENTITIES_TABLE_CELL_LENGTH, "=", "-")
     for entity in en_ontology["entities"]:
         table += _build_table_cells(
-            ["`%s`_" % entity["name"], entity["label"],
-             "`%s`_" % _category(entity["label"]),
-             ", ".join(entity["supportedLanguages"])],
-            ENTITIES_TABLE_CELL_LENGTH, "-")
+            [
+                f'`{entity["name"]}`_',
+                entity["label"],
+                f'`{_category(entity["label"])}`_',
+                ", ".join(entity["supportedLanguages"]),
+            ],
+            ENTITIES_TABLE_CELL_LENGTH,
+            "-",
+        )
     return table
 
 
 def _build_results_examples(ontology):
     content = ""
-    en_ontology = None
-    for lang_ontology in ontology:
-        if lang_ontology["language"] == "en":
-            en_ontology = lang_ontology
-            break
+    en_ontology = next(
+        (
+            lang_ontology
+            for lang_ontology in ontology
+            if lang_ontology["language"] == "en"
+        ),
+        None,
+    )
     for entity in en_ontology["entities"]:
         name = entity["name"]
         title = "\n".join([len(name) * "-", name, len(name) * "-"])

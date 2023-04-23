@@ -55,8 +55,8 @@ class LookupIntentParser(IntentParser):
         self._map = None
         self._intents_names = []
         self._slots_names = []
-        self._intents_mapping = dict()
-        self._slots_mapping = dict()
+        self._intents_mapping = {}
+        self._slots_mapping = {}
         self._entity_scopes = None
 
     @property
@@ -68,11 +68,10 @@ class LookupIntentParser(IntentParser):
         self._language = value
         if value is None:
             self._stop_words = None
+        elif self.config.ignore_stop_words:
+            self._stop_words = get_stop_words(self.resources)
         else:
-            if self.config.ignore_stop_words:
-                self._stop_words = get_stop_words(self.resources)
-            else:
-                self._stop_words = set()
+            self._stop_words = set()
 
     @property
     def fitted(self):
@@ -90,7 +89,7 @@ class LookupIntentParser(IntentParser):
         self.fit_custom_entity_parser_if_needed(dataset)
         self.language = dataset[LANGUAGE]
         self._entity_scopes = _get_entity_scopes(dataset)
-        self._map = dict()
+        self._map = {}
         self._stop_words_whitelist = get_stop_words_whitelist(
             dataset, self._stop_words)
         entity_placeholders = _get_entity_placeholders(dataset, self.language)
@@ -140,9 +139,9 @@ class LookupIntentParser(IntentParser):
             NotTrained: when the intent parser is not fitted
         """
         if top_n is None:
-            top_intents = self._parse_top_intents(text, top_n=1,
-                                                  intents=intents)
-            if top_intents:
+            if top_intents := self._parse_top_intents(
+                text, top_n=1, intents=intents
+            ):
                 intent = top_intents[0][RES_INTENT]
                 slots = top_intents[0][RES_SLOTS]
                 if intent[RES_PROBA] <= 0.5:
@@ -160,15 +159,14 @@ class LookupIntentParser(IntentParser):
 
         if top_n < 1:
             raise ValueError(
-                "top_n argument must be greater or equal to 1, but got: %s"
-                % top_n)
+                f"top_n argument must be greater or equal to 1, but got: {top_n}"
+            )
 
         results_per_intent = defaultdict(list)
         for text_candidate, entities in self._get_candidates(text, intents):
             val = self._map.get(hash_str(text_candidate))
             if val is not None:
-                result = self._parse_map_output(text, val, entities, intents)
-                if result:
+                if result := self._parse_map_output(text, val, entities, intents):
                     intent_name = result[RES_INTENT][RES_INTENT_NAME]
                     results_per_intent[intent_name].append(result)
 
@@ -414,8 +412,8 @@ class LookupIntentParser(IntentParser):
         model_path = path / "intent_parser.json"
         if not model_path.exists():
             raise LoadingError(
-                "Missing lookup intent parser metadata file: %s"
-                % model_path.name)
+                f"Missing lookup intent parser metadata file: {model_path.name}"
+            )
 
         with model_path.open(encoding="utf8") as pfile:
             metadata = json.load(pfile)
@@ -497,13 +495,10 @@ def _get_entity_name_placeholder(entity_label, language):
 
 
 def _convert_dict_keys_to_int(dct):
-    if isinstance(dct, dict):
-        return {int(k): v for k, v in iteritems(dct)}
-    return dct
+    return {int(k): v for k, v in iteritems(dct)} if isinstance(dct, dict) else dct
 
 
 def _get_entities_combinations(entities):
     yield ()
     for nb_entities in reversed(range(1, len(entities) + 1)):
-        for combination in combinations(entities, nb_entities):
-            yield combination
+        yield from combinations(entities, nb_entities)

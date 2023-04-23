@@ -27,7 +27,7 @@ class Feature(object):
 
     def __init__(self, base_name, func, offset=0, drop_out=0):
         if base_name == TOKEN_NAME:
-            raise ValueError("'%s' name is reserved" % TOKEN_NAME)
+            raise ValueError(f"'{TOKEN_NAME}' name is reserved")
         self.offset = offset
         self._name = None
         self._base_name = None
@@ -63,7 +63,5 @@ class Feature(object):
 
 def _offset_name(name, offset):
     if offset > 0:
-        return "%s[+%s]" % (name, offset)
-    if offset < 0:
-        return "%s[%s]" % (name, offset)
-    return name
+        return f"{name}[+{offset}]"
+    return f"{name}[{offset}]" if offset < 0 else name

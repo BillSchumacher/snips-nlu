@@ -70,7 +70,7 @@ class TestBuiltinEntityParser(SnipsTest):
 
         for language in get_all_languages():
             parser = BuiltinEntityParser.build(language=language)
-            msg = "get_builtin_entities does not support %s." % language
+            msg = f"get_builtin_entities does not support {language}."
             with self.fail_if_exception(msg):
                 # When / Then
                 parser.parse(text)

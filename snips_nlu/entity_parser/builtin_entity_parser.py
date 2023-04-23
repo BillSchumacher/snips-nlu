@@ -11,7 +11,7 @@ from snips_nlu.constants import DATA_PATH, ENTITIES, LANGUAGE
 from snips_nlu.entity_parser.entity_parser import EntityParser
 from snips_nlu.result import parsed_entity
 
-_BUILTIN_ENTITY_PARSERS = dict()
+_BUILTIN_ENTITY_PARSERS = {}
 
 try:
     FileNotFoundError
@@ -172,5 +172,5 @@ def _get_gazetteer_entity_configurations(language, gazetteer_entity_scope):
 
 def _get_caching_key(language, entity_scope):
     tuple_key = (language,)
-    tuple_key += tuple(entity for entity in sorted(entity_scope))
+    tuple_key += tuple(sorted(entity_scope))
     return tuple_key

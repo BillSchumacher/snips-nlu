@@ -83,7 +83,7 @@ class TestResources(FixtureTest):
 
     def test_should_raise_missing_resource_when_resource_not_found(self):
         # Given
-        resources = dict()
+        resources = {}
 
         # When
         with self.assertRaises(MissingResource):
