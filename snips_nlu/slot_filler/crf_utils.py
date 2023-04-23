@@ -38,17 +38,13 @@ def tag_name_to_slot_name(tag):
 def start_of_io_slot(tags, i):
     if i == 0:
         return tags[i] != OUTSIDE
-    if tags[i] == OUTSIDE:
-        return False
-    return tags[i - 1] == OUTSIDE
+    return False if tags[i] == OUTSIDE else tags[i - 1] == OUTSIDE
 
 
 def end_of_io_slot(tags, i):
     if i + 1 == len(tags):
         return tags[i] != OUTSIDE
-    if tags[i] == OUTSIDE:
-        return False
-    return tags[i + 1] == OUTSIDE
+    return False if tags[i] == OUTSIDE else tags[i + 1] == OUTSIDE
 
 
 def start_of_bio_slot(tags, i):
@@ -56,11 +52,7 @@ def start_of_bio_slot(tags, i):
         return tags[i] != OUTSIDE
     if tags[i] == OUTSIDE:
         return False
-    if tags[i].startswith(BEGINNING_PREFIX):
-        return True
-    if tags[i - 1] != OUTSIDE:
-        return False
-    return True
+    return True if tags[i].startswith(BEGINNING_PREFIX) else tags[i - 1] == OUTSIDE
 
 
 def end_of_bio_slot(tags, i):
@@ -68,9 +60,7 @@ def end_of_bio_slot(tags, i):
         return tags[i] != OUTSIDE
     if tags[i] == OUTSIDE:
         return False
-    if tags[i + 1].startswith(INSIDE_PREFIX):
-        return False
-    return True
+    return not tags[i + 1].startswith(INSIDE_PREFIX)
 
 
 def start_of_bilou_slot(tags, i):
@@ -84,11 +74,7 @@ def start_of_bilou_slot(tags, i):
         return True
     if tags[i - 1].startswith(UNIT_PREFIX):
         return True
-    if tags[i - 1].startswith(LAST_PREFIX):
-        return True
-    if tags[i - 1] != OUTSIDE:
-        return False
-    return True
+    return True if tags[i - 1].startswith(LAST_PREFIX) else tags[i - 1] == OUTSIDE
 
 
 def end_of_bilou_slot(tags, i):
@@ -104,9 +90,7 @@ def end_of_bilou_slot(tags, i):
         return True
     if tags[i + 1].startswith(BEGINNING_PREFIX):
         return True
-    if tags[i + 1].startswith(UNIT_PREFIX):
-        return True
-    return False
+    return bool(tags[i + 1].startswith(UNIT_PREFIX))
 
 
 def _tags_to_preslots(tags, tokens, is_start_of_slot, is_end_of_slot):
@@ -138,7 +122,7 @@ def tags_to_preslots(tokens, tags, tagging_scheme):
         slots = _tags_to_preslots(tags, tokens, start_of_bilou_slot,
                                   end_of_bilou_slot)
     else:
-        raise ValueError("Unknown tagging scheme %s" % tagging_scheme)
+        raise ValueError(f"Unknown tagging scheme {tagging_scheme}")
     return slots
 
 
@@ -176,7 +160,7 @@ def positive_tagging(tagging_scheme, slot_name, slot_size):
                      for _ in range(1, slot_size - 1)]
             tags.append(LAST_PREFIX + slot_name)
     else:
-        raise ValueError("Invalid tagging scheme %s" % tagging_scheme)
+        raise ValueError(f"Invalid tagging scheme {tagging_scheme}")
     return tags
 
 
@@ -212,8 +196,6 @@ def get_scheme_prefix(index, indexes, tagging_scheme):
             return UNIT_PREFIX
         if index == indexes[0]:
             return BEGINNING_PREFIX
-        if index == indexes[-1]:
-            return LAST_PREFIX
-        return INSIDE_PREFIX
+        return LAST_PREFIX if index == indexes[-1] else INSIDE_PREFIX
     else:
-        raise ValueError("Invalid tagging scheme %s" % tagging_scheme)
+        raise ValueError(f"Invalid tagging scheme {tagging_scheme}")

@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 import re
 import string
 
-_PUNCTUATION_REGEXES = dict()
-_NUM2WORDS_SUPPORT = dict()
+_PUNCTUATION_REGEXES = {}
+_NUM2WORDS_SUPPORT = {}
 
 
 # pylint:disable=unused-argument

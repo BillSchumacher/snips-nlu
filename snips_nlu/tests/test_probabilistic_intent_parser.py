@@ -448,7 +448,7 @@ utterances:
             "unit_name": "probabilistic_intent_parser",
             "config": config,
             "intent_classifier": None,
-            "slot_fillers": dict(),
+            "slot_fillers": {},
         }
         self.tmp_file_path.mkdir()
         metadata = {"unit_name": "probabilistic_intent_parser"}
@@ -462,7 +462,7 @@ utterances:
         # Then
         self.assertEqual(parser.config.to_dict(), config)
         self.assertIsNone(parser.intent_classifier)
-        self.assertDictEqual(dict(), parser.slot_fillers)
+        self.assertDictEqual({}, parser.slot_fillers)
 
     def test_should_be_serializable(self):
         # Given

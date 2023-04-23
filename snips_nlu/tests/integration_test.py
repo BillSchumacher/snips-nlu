@@ -56,12 +56,11 @@ def _slot_matching_lambda(lhs_slot, rhs_slot):
     rhs_value = rhs_slot["rawValue"]
     if lhs_slot["entity"] != "snips/datetime":
         return lhs_value == rhs_value
-    else:
-        # Allow fuzzy matching when comparing datetimes
-        lhs_tokens = tokenize_light(lhs_value, LANGUAGE_EN)
-        rhs_tokens = tokenize_light(rhs_value, LANGUAGE_EN)
-        if lhs_tokens and lhs_tokens[0].lower() in SKIPPED_DATE_PREFIXES:
-            lhs_tokens = lhs_tokens[1:]
-        if rhs_tokens and rhs_tokens[0].lower() in SKIPPED_DATE_PREFIXES:
-            rhs_tokens = rhs_tokens[1:]
-        return lhs_tokens == rhs_tokens
+    # Allow fuzzy matching when comparing datetimes
+    lhs_tokens = tokenize_light(lhs_value, LANGUAGE_EN)
+    rhs_tokens = tokenize_light(rhs_value, LANGUAGE_EN)
+    if lhs_tokens and lhs_tokens[0].lower() in SKIPPED_DATE_PREFIXES:
+        lhs_tokens = lhs_tokens[1:]
+    if rhs_tokens and rhs_tokens[0].lower() in SKIPPED_DATE_PREFIXES:
+        rhs_tokens = rhs_tokens[1:]
+    return lhs_tokens == rhs_tokens

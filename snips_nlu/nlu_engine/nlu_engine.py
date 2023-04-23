@@ -107,12 +107,14 @@ class SnipsNLUEngine(ProcessingUnit):
 
         parsers = []
         for parser_config in self.config.intent_parsers_configs:
-            # Re-use existing parsers to allow pre-training
-            recycled_parser = None
-            for parser in self.intent_parsers:
-                if parser.unit_name == parser_config.unit_name:
-                    recycled_parser = parser
-                    break
+            recycled_parser = next(
+                (
+                    parser
+                    for parser in self.intent_parsers
+                    if parser.unit_name == parser_config.unit_name
+                ),
+                None,
+            )
             if recycled_parser is None:
                 recycled_parser = IntentParser.from_config(
                     parser_config,
@@ -160,8 +162,7 @@ class SnipsNLUEngine(ProcessingUnit):
             InvalidInputError: When input type is not unicode
         """
         if not isinstance(text, str):
-            raise InvalidInputError("Expected unicode but received: %s"
-                                    % type(text))
+            raise InvalidInputError(f"Expected unicode but received: {type(text)}")
 
         if isinstance(intents, str):
             intents = {intents}
@@ -244,8 +245,7 @@ class SnipsNLUEngine(ProcessingUnit):
             InvalidInputError: When input type is not unicode
         """
         if not isinstance(text, str):
-            raise InvalidInputError("Expected unicode but received: %s"
-                                    % type(text))
+            raise InvalidInputError(f"Expected unicode but received: {type(text)}")
 
         if intent is None:
             return []
@@ -254,10 +254,8 @@ class SnipsNLUEngine(ProcessingUnit):
             raise IntentNotFoundError(intent)
 
         for parser in self.intent_parsers:
-            slots = parser.get_slots(text, intent)
-            if not slots:
-                continue
-            return self._resolve_slots(text, slots)
+            if slots := parser.get_slots(text, intent):
+                return self._resolve_slots(text, slots)
         return []
 
     @check_persisted_path
@@ -286,10 +284,7 @@ class SnipsNLUEngine(ProcessingUnit):
             parser.persist(parser_path)
             intent_parsers.append(parser_name)
 
-        config = None
-        if self.config is not None:
-            config = self.config.to_dict()
-
+        config = self.config.to_dict() if self.config is not None else None
         builtin_entity_parser = None
         if self.builtin_entity_parser is not None:
             builtin_entity_parser = "builtin_entity_parser"
@@ -344,15 +339,13 @@ class SnipsNLUEngine(ProcessingUnit):
         directory_path = Path(path)
         model_path = directory_path / "nlu_engine.json"
         if not model_path.exists():
-            raise LoadingError("Missing nlu engine model file: %s"
-                               % model_path.name)
+            raise LoadingError(f"Missing nlu engine model file: {model_path.name}")
 
         with model_path.open(encoding="utf8") as f:
             model = json.load(f)
         model_version = model.get("model_version")
         if model_version is None or model_version != __model_version__:
-            bypass_version_check = shared.get(BYPASS_VERSION_CHECK, False)
-            if bypass_version_check:
+            if bypass_version_check := shared.get(BYPASS_VERSION_CHECK, False):
                 logger.warning(
                     "Incompatible model version found. The library expected "
                     "'%s' but the loaded engine is '%s'. The NLU engine may "
@@ -426,16 +419,19 @@ class SnipsNLUEngine(ProcessingUnit):
                 extensible = self.dataset_metadata[ENTITIES][entity_name][
                     AUTOMATICALLY_EXTENSIBLE]
 
-            resolved_slot = None
-            for ent in entities:
-                if ent[ENTITY_KIND] == entity_name and \
-                        ent[RES_MATCH_RANGE] == slot[RES_MATCH_RANGE]:
-                    resolved_slot = slot_builder(slot, ent[RESOLVED_VALUE])
-                    break
+            resolved_slot = next(
+                (
+                    slot_builder(slot, ent[RESOLVED_VALUE])
+                    for ent in entities
+                    if ent[ENTITY_KIND] == entity_name
+                    and ent[RES_MATCH_RANGE] == slot[RES_MATCH_RANGE]
+                ),
+                None,
+            )
             if resolved_slot is None:
-                matches = parser.parse(
-                    raw_value, scope=[entity_name], use_cache=use_cache)
-                if matches:
+                if matches := parser.parse(
+                    raw_value, scope=[entity_name], use_cache=use_cache
+                ):
                     match = matches[0]
                     if is_builtin or len(match[RES_VALUE]) == len(raw_value):
                         resolved_slot = slot_builder(
@@ -452,13 +448,13 @@ class SnipsNLUEngine(ProcessingUnit):
 
 def _get_dataset_metadata(dataset):
     dataset = dataset
-    entities = dict()
-    for entity_name, entity in iteritems(dataset[ENTITIES]):
-        if is_builtin_entity(entity_name):
-            continue
-        entities[entity_name] = {
+    entities = {
+        entity_name: {
             AUTOMATICALLY_EXTENSIBLE: entity[AUTOMATICALLY_EXTENSIBLE]
         }
+        for entity_name, entity in iteritems(dataset[ENTITIES])
+        if not is_builtin_entity(entity_name)
+    }
     slot_name_mappings = get_slot_name_mappings(dataset)
     return {
         "language_code": dataset[LANGUAGE],

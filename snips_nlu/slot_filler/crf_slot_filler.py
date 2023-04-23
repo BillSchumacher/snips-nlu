@@ -71,7 +71,7 @@ class CRFSlotFiller(SlotFiller):
             for factory in self.features_factories:
                 for feature in factory.build_features():
                     if feature.name in feature_names:
-                        raise KeyError("Duplicated feature: %s" % feature.name)
+                        raise KeyError(f"Duplicated feature: {feature.name}")
                     feature_names.add(feature.name)
                     self._features.append(feature)
         return self._features
@@ -84,11 +84,11 @@ class CRFSlotFiller(SlotFiller):
         prefix which depends on the :class:`.TaggingScheme` that is used
         (BIO by default).
         """
-        labels = []
-        if self.crf_model.tagger_ is not None:
-            labels = [_decode_tag(label) for label in
-                      self.crf_model.tagger_.labels()]
-        return labels
+        return (
+            [_decode_tag(label) for label in self.crf_model.tagger_.labels()]
+            if self.crf_model.tagger_ is not None
+            else []
+        )
 
     @property
     def fitted(self):
@@ -97,7 +97,6 @@ class CRFSlotFiller(SlotFiller):
 
     @log_elapsed_time(logger, logging.INFO,
                       "Fitted CRFSlotFiller in {elapsed_time}")
-    # pylint:disable=arguments-differ
     def fit(self, dataset, intent):
         """Fits the slot filler
 
@@ -146,7 +145,7 @@ class CRFSlotFiller(SlotFiller):
         # pylint: disable=C0103
         X = [self.compute_features(sample[TOKENS], drop_out=True)
              for sample in crf_samples]
-        Y = [[tag for tag in sample[TAGS]] for sample in crf_samples]
+        Y = [list(sample[TAGS]) for sample in crf_samples]
         X, Y = _ensure_safe(X, Y)
 
         # ensure ascii tags
@@ -248,14 +247,12 @@ class CRFSlotFiller(SlotFiller):
         """Returns a logs for both the label-to-label and label-to-features
          weights"""
         if not self.slot_name_mapping:
-            return "No weights to display: intent '%s' has no slots" \
-                   % self.intent
-        log = ""
+            return f"No weights to display: intent '{self.intent}' has no slots"
         transition_features = self.crf_model.transition_features_
         transition_features = sorted(
             iteritems(transition_features), key=_weight_absolute_value,
             reverse=True)
-        log += "\nTransition weights: \n\n"
+        log = "" + "\nTransition weights: \n\n"
         for (state_1, state_2), weight in transition_features:
             log += "\n%s %s: %s" % (
                 _decode_tag(state_1), _decode_tag(state_2), weight)
@@ -269,29 +266,27 @@ class CRFSlotFiller(SlotFiller):
         return log
 
     def log_inference_weights(self, text, tokens, features, tags):
-        model_features = set(
-            f for (f, _), w in iteritems(self.crf_model.state_features_))
+        model_features = {f for (f, _), w in iteritems(self.crf_model.state_features_)}
         log = "Feature weights for \"%s\":\n\n" % text
         max_index = len(tokens) - 1
         tokens_logs = []
         for i, (token, feats, tag) in enumerate(zip(tokens, features, tags)):
             token_log = "# Token \"%s\" (tagged as %s):" \
-                        % (token.value, _decode_tag(tag))
+                            % (token.value, _decode_tag(tag))
             if i != 0:
                 weights = sorted(self._get_outgoing_weights(tags[i - 1]),
                                  key=_weight_absolute_value, reverse=True)
                 if weights:
                     token_log += "\n\nTransition weights from previous tag:"
                     weight_lines = (
-                        "- (%s, %s) -> %s"
-                        % (_decode_tag(a), _decode_tag(b), w)
+                        f"- ({_decode_tag(a)}, {_decode_tag(b)}) -> {w}"
                         for (a, b), w in weights
                     )
                     token_log += "\n" + "\n".join(weight_lines)
                 else:
                     token_log += \
-                        "\n\nNo transition from previous tag seen at" \
-                        " train time !"
+                            "\n\nNo transition from previous tag seen at" \
+                            " train time !"
 
             if i != max_index:
                 weights = sorted(self._get_incoming_weights(tags[i + 1]),
@@ -299,31 +294,32 @@ class CRFSlotFiller(SlotFiller):
                 if weights:
                     token_log += "\n\nTransition weights to next tag:"
                     weight_lines = (
-                        "- (%s, %s) -> %s"
-                        % (_decode_tag(a), _decode_tag(b), w)
+                        f"- ({_decode_tag(a)}, {_decode_tag(b)}) -> {w}"
                         for (a, b), w in weights
                     )
                     token_log += "\n" + "\n".join(weight_lines)
                 else:
                     token_log += \
-                        "\n\nNo transition to next tag seen at train time !"
+                            "\n\nNo transition to next tag seen at train time !"
             feats = [":".join(f) for f in iteritems(feats)]
             weights = (w for f in feats for w in self._get_feature_weight(f))
-            weights = sorted(weights, key=_weight_absolute_value, reverse=True)
-            if weights:
+            if weights := sorted(
+                weights, key=_weight_absolute_value, reverse=True
+            ):
                 token_log += "\n\nFeature weights:\n"
                 token_log += "\n".join(
-                    "- (%s, %s) -> %s"
-                    % (f, _decode_tag(t), w) for (f, t), w in weights
+                    f"- ({f}, {_decode_tag(t)}) -> {w}" for (f, t), w in weights
                 )
             else:
                 token_log += "\n\nNo feature weights !"
 
-            unseen_features = sorted(
-                set(f for f in feats if f not in model_features))
-            if unseen_features:
-                token_log += "\n\nFeatures not seen at train time:\n%s" % \
-                             "\n".join("- %s" % f for f in unseen_features)
+            if unseen_features := sorted(
+                {f for f in feats if f not in model_features}
+            ):
+                token_log += (
+                    "\n\nFeatures not seen at train time:\n%s"
+                    % "\n".join(f"- {f}" for f in unseen_features)
+                )
             tokens_logs.append(token_log)
 
         log += "\n\n\n".join(tokens_logs)
@@ -385,8 +381,7 @@ class CRFSlotFiller(SlotFiller):
         path = Path(path)
         model_path = path / "slot_filler.json"
         if not model_path.exists():
-            raise LoadingError(
-                "Missing slot filler model file: %s" % model_path.name)
+            raise LoadingError(f"Missing slot filler model file: {model_path.name}")
 
         with model_path.open(encoding="utf8") as f:
             model = json.load(f)

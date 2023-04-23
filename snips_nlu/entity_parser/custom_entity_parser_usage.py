@@ -18,6 +18,4 @@ class CustomEntityParserUsage(Enum):
             return rhs_usage
         if rhs_usage is None:
             return lhs_usage
-        if lhs_usage == rhs_usage:
-            return lhs_usage
-        return cls.WITH_AND_WITHOUT_STEMS
+        return lhs_usage if lhs_usage == rhs_usage else cls.WITH_AND_WITHOUT_STEMS

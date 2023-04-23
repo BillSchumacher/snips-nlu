@@ -35,13 +35,7 @@ def parse(training_path, query, verbose=False, intents_filter=None):
         set_nlu_logger(logging.INFO)
     elif verbose >= 2:
         set_nlu_logger(logging.DEBUG)
-    if intents_filter:
-        # use csv in order to properly handle commas and other special
-        # characters in intent names
-        intents_filter = next(csv.reader([intents_filter]))
-    else:
-        intents_filter = None
-
+    intents_filter = next(csv.reader([intents_filter])) if intents_filter else None
     engine = SnipsNLUEngine.from_path(training_path)
 
     if query:

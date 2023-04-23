@@ -107,7 +107,7 @@ class LogRegIntentClassifier(IntentClassifier):
             "balanced", range(none_class + 1), classes)
         # Re-weight the noise class
         class_weights_arr[-1] *= self.config.noise_reweight_factor
-        class_weight = {idx: w for idx, w in enumerate(class_weights_arr)}
+        class_weight = dict(enumerate(class_weights_arr))
 
         self.classifier = SGDClassifier(
             random_state=self.random_state, alpha=alpha,
@@ -189,9 +189,7 @@ class LogRegIntentClassifier(IntentClassifier):
         np.exp(prob, prob)
         prob += 1
         np.reciprocal(prob, prob)
-        if prob.ndim == 1:
-            return np.vstack([1 - prob, prob]).T
-        return prob
+        return np.vstack([1 - prob, prob]).T if prob.ndim == 1 else prob
 
     @check_persisted_path
     def persist(self, path):
@@ -240,8 +238,7 @@ class LogRegIntentClassifier(IntentClassifier):
         path = Path(path)
         model_path = path / "intent_classifier.json"
         if not model_path.exists():
-            raise LoadingError("Missing intent classifier model file: %s"
-                               % model_path.name)
+            raise LoadingError(f"Missing intent classifier model file: {model_path.name}")
 
         with model_path.open(encoding="utf8") as f:
             model_dict = json.load(f)
@@ -255,11 +252,11 @@ class LogRegIntentClassifier(IntentClassifier):
         sgd_classifier = None
         coeffs = model_dict['coeffs']
         intercept = model_dict['intercept']
-        t_ = model_dict["t_"]
         if coeffs is not None and intercept is not None:
             sgd_classifier = SGDClassifier(**LOG_REG_ARGS)
             sgd_classifier.coef_ = np.array(coeffs)
             sgd_classifier.intercept_ = np.array(intercept)
+            t_ = model_dict["t_"]
             sgd_classifier.t_ = t_
         intent_classifier.classifier = sgd_classifier
 
@@ -278,17 +275,17 @@ class LogRegIntentClassifier(IntentClassifier):
         if not hasattr(self.featurizer, "feature_index_to_feature_name"):
             return None
 
-        log = "Top {} features weights by intent:".format(top_n)
+        log = f"Top {top_n} features weights by intent:"
         index_to_feature = self.featurizer.feature_index_to_feature_name
         for intent_ix in range(self.classifier.coef_.shape[0]):
             intent_name = self.intent_list[intent_ix]
-            log += "\n\n\nFor intent {}\n".format(intent_name)
+            log += f"\n\n\nFor intent {intent_name}\n"
             top_features_idx = np.argsort(
                 np.absolute(self.classifier.coef_[intent_ix]))[::-1][:top_n]
             for feature_ix in top_features_idx:
                 feature_name = index_to_feature[feature_ix]
                 feature_weight = self.classifier.coef_[intent_ix, feature_ix]
-                log += "\n{} -> {}".format(feature_name, feature_weight)
+                log += f"\n{feature_name} -> {feature_weight}"
         return log
 
     def log_activation_weights(self, text, x, top_n=50):
@@ -297,15 +294,12 @@ class LogRegIntentClassifier(IntentClassifier):
         if not hasattr(self.featurizer, "feature_index_to_feature_name"):
             return None
 
-        log = "\n\nTop {} feature activations for: \"{}\":\n".format(
-            top_n, text)
+        log = f'\n\nTop {top_n} feature activations for: \"{text}\":\n'
         activations = np.multiply(
             self.classifier.coef_, np.asarray(x.todense()))
         abs_activation = np.absolute(activations).flatten().squeeze()
 
-        if top_n > activations.size:
-            top_n = activations.size
-
+        top_n = min(top_n, activations.size)
         top_n_activations_ix = np.argpartition(abs_activation, -top_n,
                                                axis=None)[-top_n:]
         top_n_activations_ix = np.unravel_index(

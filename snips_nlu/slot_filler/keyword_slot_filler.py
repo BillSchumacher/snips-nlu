@@ -21,7 +21,7 @@ class KeywordSlotFiller(SlotFiller):
 
     def fit(self, dataset, intent):
         self.language = dataset["language"]
-        self.slots_keywords = dict()
+        self.slots_keywords = {}
         utterances = dataset["intents"][intent]["utterances"]
         for utterance in utterances:
             for chunk in utterance["data"]:

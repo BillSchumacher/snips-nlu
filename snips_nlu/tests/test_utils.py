@@ -203,7 +203,7 @@ class TestVersion(SnipsTest):
         ]
 
         for v in valid_versions:
-            msg = "Failed to parser valid version '%s'" % v
+            msg = f"Failed to parser valid version '{v}'"
             with self.fail_if_exception(msg):
                 # When / Then
                 parse_version(v)
@@ -284,7 +284,7 @@ class TestVersion(SnipsTest):
         v = __version__
 
         # When/Then
-        msg = "Version number '%s' is not semantically valid" % v
+        msg = f"Version number '{v}' is not semantically valid"
         with self.fail_if_exception(msg):
             parse_version(v)
 
@@ -293,6 +293,6 @@ class TestVersion(SnipsTest):
         model_version = __model_version__
 
         # When/Then
-        msg = "Version number '%s' is not semantically valid" % model_version
+        msg = f"Version number '{model_version}' is not semantically valid"
         with self.fail_if_exception(msg):
             parse_version(model_version)

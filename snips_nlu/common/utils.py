@@ -76,8 +76,9 @@ def ranges_overlap(lhs_range, rhs_range):
             and isinstance(rhs_range, (tuple, list)):
         return lhs_range[1] > rhs_range[0] and lhs_range[0] < rhs_range[1]
     else:
-        raise TypeError("Cannot check overlap on objects of type: %s and %s"
-                        % (type(lhs_range), type(rhs_range)))
+        raise TypeError(
+            f"Cannot check overlap on objects of type: {type(lhs_range)} and {type(rhs_range)}"
+        )
 
 
 def elapsed_since(time):
@@ -104,7 +105,7 @@ def unicode_string(string):
     if isinstance(string, newbytes):
         string = bytes(string).decode("utf8")
 
-    raise TypeError("Cannot convert %s into unicode string" % type(string))
+    raise TypeError(f"Cannot convert {type(string)} into unicode string")
 
 
 def check_persisted_path(func):
@@ -122,7 +123,7 @@ def fitted_required(func):
     @wraps(func)
     def func_wrapper(self, *args, **kwargs):
         if not self.fitted:
-            raise NotTrained("%s must be fitted" % self.unit_name)
+            raise NotTrained(f"{self.unit_name} must be fitted")
         return func(self, *args, **kwargs)
 
     return func_wrapper
@@ -142,10 +143,7 @@ def is_package(name):
 
     name = name.lower().replace("-", "_")
     packages = pkg_resources.working_set.by_key.keys()
-    for package in packages:
-        if package.lower().replace("-", "_") == name:
-            return True
-    return False
+    return any(package.lower().replace("-", "_") == name for package in packages)
 
 
 def get_package_path(name):
@@ -181,13 +179,13 @@ def replace_entities_with_placeholders(text, entities, placeholder_fn):
     as defined by the placeholder function
     """
     if not entities:
-        return dict(), text
+        return {}, text
 
     entities = deduplicate_overlapping_entities(entities)
     entities = sorted(
         entities, key=lambda e: e[RES_MATCH_RANGE][START])
 
-    range_mapping = dict()
+    range_mapping = {}
     processed_text = ""
     offset = 0
     current_ix = 0

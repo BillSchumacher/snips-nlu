@@ -38,8 +38,7 @@ def get_regularization_factor(dataset):
     nb_utterances = [len(intent[UTTERANCES]) for intent in itervalues(intents)]
     avg_utterances = np.mean(nb_utterances)
     total_utterances = sum(nb_utterances)
-    alpha = 1.0 / (4 * (total_utterances + 5 * avg_utterances))
-    return alpha
+    return 1.0 / (4 * (total_utterances + 5 * avg_utterances))
 
 
 def get_noise_it(noise, mean_length, std_length, random_state):
@@ -118,7 +117,7 @@ def build_training_data(dataset, language, data_augmentation_config, resources,
     # Create class mapping
     intents = dataset[INTENTS]
     intent_index = 0
-    classes_mapping = dict()
+    classes_mapping = {}
     for intent in sorted(intents):
         classes_mapping[intent] = intent_index
         intent_index += 1
@@ -164,11 +163,7 @@ def build_training_data(dataset, language, data_augmentation_config, resources,
     nb_classes = len(set(itervalues(classes_mapping)))
     intent_mapping = [None for _ in range(nb_classes)]
     for intent, intent_class in iteritems(classes_mapping):
-        if intent == NOISE_NAME:
-            intent_mapping[intent_class] = None
-        else:
-            intent_mapping[intent_class] = intent
-
+        intent_mapping[intent_class] = None if intent == NOISE_NAME else intent
     return augmented_utterances, np.array(utterance_classes), intent_mapping
 
 

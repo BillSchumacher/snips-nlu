@@ -109,7 +109,7 @@ class Entity(object):
 
         object_type = yaml_dict.get("type")
         if object_type and object_type != "entity":
-            raise EntityFormatError("Wrong type: '%s'" % object_type)
+            raise EntityFormatError(f"Wrong type: '{object_type}'")
         entity_name = yaml_dict.get("name")
         if not entity_name:
             raise EntityFormatError("Missing 'name' attribute")
@@ -138,7 +138,7 @@ class Entity(object):
     def json(self):
         """Returns the entity in json format"""
         if self.is_builtin:
-            return dict()
+            return {}
         return {
             AUTOMATICALLY_EXTENSIBLE: self.automatically_extensible,
             USE_SYNONYMS: self.use_synonyms,

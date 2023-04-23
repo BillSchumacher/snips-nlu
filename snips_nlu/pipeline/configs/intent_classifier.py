@@ -239,7 +239,7 @@ class TfidfVectorizerConfig(FromDict, ProcessingUnitConfig):
         return TfidfVectorizer.unit_name
 
     def get_required_resources(self):
-        resources = {STEMS: True if self.use_stemming else False}
+        resources = {STEMS: bool(self.use_stemming)}
         if self.word_clusters_name:
             resources[WORD_CLUSTERS] = {self.word_clusters_name}
         return resources

@@ -75,7 +75,7 @@ ROOT_PATH = os.path.dirname(
 
 with io.open(os.path.join(ROOT_PATH, "snips_nlu", "__about__.py"),
              encoding="utf8") as f:
-    about = dict()
+    about = {}
     exec(f.read(), about)
 
 version = about["__version__"]

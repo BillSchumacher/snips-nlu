@@ -70,11 +70,10 @@ class DeterministicIntentParser(IntentParser):
         self._language = value
         if value is None:
             self._stop_words = None
+        elif self.config.ignore_stop_words:
+            self._stop_words = get_stop_words(self.resources)
         else:
-            if self.config.ignore_stop_words:
-                self._stop_words = get_stop_words(self.resources)
-            else:
-                self._stop_words = set()
+            self._stop_words = set()
 
     @property
     def slot_names_to_entities(self):
@@ -117,10 +116,9 @@ class DeterministicIntentParser(IntentParser):
     @patterns.setter
     def patterns(self, value):
         if value is not None:
-            self.regexes_per_intent = dict()
+            self.regexes_per_intent = {}
             for intent, pattern_list in iteritems(value):
-                regexes = [re.compile(r"%s" % p, re.IGNORECASE)
-                           for p in pattern_list]
+                regexes = [re.compile(f"{p}", re.IGNORECASE) for p in pattern_list]
                 self.regexes_per_intent[intent] = regexes
 
     @property
@@ -138,7 +136,7 @@ class DeterministicIntentParser(IntentParser):
         self.fit_builtin_entity_parser_if_needed(dataset)
         self.fit_custom_entity_parser_if_needed(dataset)
         self.language = dataset[LANGUAGE]
-        self.regexes_per_intent = dict()
+        self.regexes_per_intent = {}
         entity_placeholders = _get_entity_placeholders(dataset, self.language)
         self.slot_names_to_entities = get_slot_name_mappings(dataset)
         self.group_names_to_slot_names = _get_group_names_to_slot_names(
@@ -149,7 +147,7 @@ class DeterministicIntentParser(IntentParser):
         # Do not use ambiguous patterns that appear in more than one intent
         all_patterns = set()
         ambiguous_patterns = set()
-        intent_patterns = dict()
+        intent_patterns = {}
         for intent_name, intent in iteritems(dataset[INTENTS]):
             patterns = self._generate_patterns(intent_name, intent[UTTERANCES],
                                                entity_placeholders)
@@ -197,9 +195,9 @@ class DeterministicIntentParser(IntentParser):
             NotTrained: when the intent parser is not fitted
         """
         if top_n is None:
-            top_intents = self._parse_top_intents(text, top_n=1,
-                                                  intents=intents)
-            if top_intents:
+            if top_intents := self._parse_top_intents(
+                text, top_n=1, intents=intents
+            ):
                 intent = top_intents[0][RES_INTENT]
                 slots = top_intents[0][RES_SLOTS]
                 if intent[RES_PROBA] <= 0.5:
@@ -217,8 +215,8 @@ class DeterministicIntentParser(IntentParser):
 
         if top_n < 1:
             raise ValueError(
-                "top_n argument must be greater or equal to 1, but got: %s"
-                % top_n)
+                f"top_n argument must be greater or equal to 1, but got: {top_n}"
+            )
 
         def placeholder_fn(entity_name):
             return _get_entity_name_placeholder(entity_name, self.language)
@@ -345,15 +343,14 @@ class DeterministicIntentParser(IntentParser):
             entity = self.slot_names_to_entities[intent][slot_name]
             rng = (found_result.start(group_name),
                    found_result.end(group_name))
-            if entities_ranges_mapping is not None:
-                if rng in entities_ranges_mapping:
-                    rng = entities_ranges_mapping[rng]
-                else:
-                    shift = _get_range_shift(
-                        rng, entities_ranges_mapping)
-                    rng = {START: rng[0] + shift, END: rng[1] + shift}
-            else:
+            if entities_ranges_mapping is None:
                 rng = {START: rng[0], END: rng[1]}
+            elif rng in entities_ranges_mapping:
+                rng = entities_ranges_mapping[rng]
+            else:
+                shift = _get_range_shift(
+                    rng, entities_ranges_mapping)
+                rng = {START: rng[0] + shift, END: rng[1] + shift}
             value = text[rng[START]:rng[END]]
             parsed_slot = unresolved_slot(
                 match_range=rng, value=value, entity=entity,
@@ -390,17 +387,15 @@ class DeterministicIntentParser(IntentParser):
                 group_name = self.slot_names_to_group_names[slot_name]
                 count = slot_names_count[slot_name]
                 if count > 1:
-                    group_name = "%s_%s" % (group_name, count)
+                    group_name = f"{group_name}_{count}"
                 placeholder = entity_placeholders[chunk[ENTITY]]
-                pattern.append(r"(?P<%s>%s)" % (group_name, placeholder))
+                pattern.append(f"(?P<{group_name}>{placeholder})")
             else:
                 tokens = tokenize_light(chunk[TEXT], self.language)
                 pattern += [regex_escape(t.lower()) for t in tokens
                             if normalize(t) not in stop_words]
 
-        pattern = r"^%s%s%s$" % (WHITESPACE_PATTERN,
-                                 WHITESPACE_PATTERN.join(pattern),
-                                 WHITESPACE_PATTERN)
+        pattern = f"^{WHITESPACE_PATTERN}{WHITESPACE_PATTERN.join(pattern)}{WHITESPACE_PATTERN}$"
         return pattern
 
     @check_persisted_path
@@ -425,8 +420,8 @@ class DeterministicIntentParser(IntentParser):
         model_path = path / "intent_parser.json"
         if not model_path.exists():
             raise LoadingError(
-                "Missing deterministic intent parser metadata file: %s"
-                % model_path.name)
+                f"Missing deterministic intent parser metadata file: {model_path.name}"
+            )
 
         with model_path.open(encoding="utf8") as f:
             metadata = json.load(f)
@@ -463,11 +458,11 @@ class DeterministicIntentParser(IntentParser):
             "group_names_to_slot_names"]
         parser.slot_names_to_entities = unit_dict["slot_names_to_entities"]
         if parser.fitted:
-            whitelist = unit_dict.get("stop_words_whitelist", dict())
+            whitelist = unit_dict.get("stop_words_whitelist", {})
             # pylint:disable=protected-access
             parser._stop_words_whitelist = {
                 intent: set(values) for intent, values in iteritems(whitelist)}
-            # pylint:enable=protected-access
+                # pylint:enable=protected-access
         return parser
 
 
@@ -476,19 +471,19 @@ def _get_range_shift(matched_range, ranges_mapping):
     previous_replaced_range_end = None
     matched_start = matched_range[0]
     for replaced_range, orig_range in iteritems(ranges_mapping):
-        if replaced_range[1] <= matched_start:
-            if previous_replaced_range_end is None \
-                    or replaced_range[1] > previous_replaced_range_end:
-                previous_replaced_range_end = replaced_range[1]
-                shift = orig_range[END] - replaced_range[1]
+        if replaced_range[1] <= matched_start and (
+            previous_replaced_range_end is None
+            or replaced_range[1] > previous_replaced_range_end
+        ):
+            previous_replaced_range_end = replaced_range[1]
+            shift = orig_range[END] - replaced_range[1]
     return shift
 
 
 def _get_group_names_to_slot_names(slot_names_mapping):
     slot_names = {slot_name for mapping in itervalues(slot_names_mapping)
                   for slot_name in mapping}
-    return {"group%s" % i: name
-            for i, name in enumerate(sorted(slot_names))}
+    return {f"group{i}": name for i, name in enumerate(sorted(slot_names))}
 
 
 def _get_entity_placeholders(dataset, language):

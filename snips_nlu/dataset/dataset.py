@@ -176,12 +176,12 @@ class Dataset(object):
                 intents.append(Intent.from_yaml(doc))
             else:
                 raise DatasetFormatError(
-                    "Invalid 'type' value in YAML file '%s': '%s'"
-                    % (stream_description, doc_type))
+                    f"Invalid 'type' value in YAML file '{stream_description}': '{doc_type}'"
+                )
         return intents, entities
 
     def _add_missing_entities(self):
-        entity_names = set(e.name for e in self.entities)
+        entity_names = {e.name for e in self.entities}
 
         # Add entities appearing only in the intents utterances
         for intent in self.intents:

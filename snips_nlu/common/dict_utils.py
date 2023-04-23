@@ -32,5 +32,5 @@ class LimitedSizeDict(OrderedDict):
 class UnupdatableDict(dict):
     def __setitem__(self, key, value):
         if key in self:
-            raise KeyError("Can't update key '%s'" % key)
+            raise KeyError(f"Can't update key '{key}'")
         super(UnupdatableDict, self).__setitem__(key, value)

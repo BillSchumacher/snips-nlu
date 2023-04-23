@@ -10,7 +10,7 @@ root = os.path.abspath(os.path.dirname(__file__))
 
 with io.open(os.path.join(root, "snips_nlu", "__about__.py"),
              encoding="utf8") as f:
-    about = dict()
+    about = {}
     exec(f.read(), about)
 
 with io.open(os.path.join(root, "README.rst"), encoding="utf8") as f:

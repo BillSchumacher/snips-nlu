@@ -751,12 +751,8 @@ utterances:
 
         # When
         naughty_dataset = {
-            "intents": {
-                "naughty_intent": {
-                    "utterances": utterances
-                }
-            },
-            "entities": dict(),
+            "intents": {"naughty_intent": {"utterances": utterances}},
+            "entities": {},
             "language": "en",
         }
 
@@ -766,7 +762,7 @@ utterances:
 
     def test_should_fit_and_parse_with_non_ascii_tags(self):
         # Given
-        inputs = ["string%s" % i for i in range(10)]
+        inputs = [f"string{i}" for i in range(10)]
         utterances = [{
             DATA: [{
                 TEXT: string,
@@ -885,7 +881,7 @@ values:
                 "unit_name": "deterministic_intent_parser",
                 "max_queries": 42,
                 "max_pattern_length": 100,
-                "ignore_stop_words": True
+                "ignore_stop_words": True,
             },
             "language_code": "en",
             "group_names_to_slot_names": {
@@ -896,8 +892,7 @@ values:
                 "searchFlight": [
                     "^\\s*find\\s*flight\\s*from\\s*(?P<group1>%CITY%)\\s*to"
                     "\\s*(?P<group0>%CITY%)\\s*$",
-                    "^\\s*i\\s*need\\s*flight\\s*to\\s*(?P<group0>%CITY%)"
-                    "\\s*$",
+                    "^\\s*i\\s*need\\s*flight\\s*to\\s*(?P<group0>%CITY%)" "\\s*$",
                 ]
             },
             "slot_names_to_entities": {
@@ -906,7 +901,7 @@ values:
                     "origin": "city",
                 }
             },
-            "stop_words_whitelist": dict()
+            "stop_words_whitelist": {},
         }
         metadata = {"unit_name": "deterministic_intent_parser"}
         self.assertJsonContent(self.tmp_file_path / "metadata.json",
@@ -973,7 +968,7 @@ values:
         expected_parser.slot_names_to_entities = slot_names_to_entities
         expected_parser.patterns = patterns
         # pylint:disable=protected-access
-        expected_parser._stop_words_whitelist = dict()
+        expected_parser._stop_words_whitelist = {}
         # pylint:enable=protected-access
 
         self.assertEqual(parser.to_dict(), expected_parser.to_dict())

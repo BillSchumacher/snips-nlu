@@ -49,7 +49,7 @@ def and_variations(string, language):
     if and_regex is None:
         return set()
 
-    matches = [m for m in and_regex.finditer(string)]
+    matches = list(and_regex.finditer(string))
     if not matches:
         return set()
 
@@ -73,7 +73,7 @@ def and_variations(string, language):
 
 
 def punctuation_variations(string, language):
-    matches = [m for m in get_punctuation_regex(language).finditer(string)]
+    matches = list(get_punctuation_regex(language).finditer(string))
     if not matches:
         return set()
 
@@ -106,9 +106,7 @@ def alphabetic_value(number_entity, language):
     from num2words import num2words
 
     value = number_entity[RESOLVED_VALUE][VALUE]
-    if value != int(value):  # num2words does not handle floats correctly
-        return None
-    return num2words(int(value), lang=language)
+    return None if value != int(value) else num2words(int(value), lang=language)
 
 
 def numbers_variations(string, language, builtin_entity_parser):
@@ -154,7 +152,7 @@ def normalization_variations(string):
 
 
 def flatten(results):
-    return set(i for r in results for i in r)
+    return {i for r in results for i in r}
 
 
 def get_string_variations(string, language, builtin_entity_parser,
@@ -185,11 +183,12 @@ def get_string_variations(string, language, builtin_entity_parser,
         )
 
     # Add single space variations
-    single_space_variations = set(" ".join(v.split()) for v in variations)
+    single_space_variations = {" ".join(v.split()) for v in variations}
     variations.update(single_space_variations)
     # Add tokenized variations
-    tokenized_variations = set(
-        get_default_sep(language).join(tokenize_light(v, language)) for v in
-        variations)
+    tokenized_variations = {
+        get_default_sep(language).join(tokenize_light(v, language))
+        for v in variations
+    }
     variations.update(tokenized_variations)
     return variations

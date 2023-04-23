@@ -70,7 +70,7 @@ utterances:
     def test_should_build_training_data_with_noise(
             self, mocked_augment_utterances):
         # Given
-        mocked_noises = ["mocked_noise_%s" % i for i in range(100)]
+        mocked_noises = [f"mocked_noise_{i}" for i in range(100)]
         resources = {
             NOISE: mocked_noises
         }
@@ -151,7 +151,7 @@ utterances:
             return next(rand_it)
 
         max_unknown_words = 3
-        rg_it = cycle([i for i in range(1, max_unknown_words + 1)])
+        rg_it = cycle(list(range(1, max_unknown_words + 1)))
 
         def mocked_randint(a, b):  # pylint: disable=unused-argument
             return next(rg_it)
@@ -342,7 +342,7 @@ utterances:
     def test_should_build_training_data_with_unknown_noise(
             self, mocked_augment_utterances):
         # Given
-        mocked_noises = ["mocked_noise_%s" % i for i in range(100)]
+        mocked_noises = [f"mocked_noise_{i}" for i in range(100)]
         resources = {
             NOISE: mocked_noises
         }
@@ -428,17 +428,14 @@ utterances:
         augmented_utterances = [
             {
                 "data": [
-                    {
-                        "text": " ".join(
-                            "{}".format(i) for i in range(utterances_length))
-                    }
+                    {"text": " ".join(f"{i}" for i in range(utterances_length))}
                 ]
             }
         ]
         num_utterances = 10
         random_state = np.random.RandomState(1)
 
-        augmented_utterances = augmented_utterances * num_utterances
+        augmented_utterances *= num_utterances
         config = IntentClassifierDataAugmentationConfig(
             noise_factor=noise_factor)
         # When

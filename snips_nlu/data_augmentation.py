@@ -51,7 +51,7 @@ def generate_utterance(contexts_iterator, entities_iterators):
         if ENTITY in chunk:
             chunk[TEXT] = deepcopy(
                 next(entities_iterators[chunk[ENTITY]]))
-        chunk[TEXT] = chunk[TEXT].strip() + " "
+        chunk[TEXT] = f"{chunk[TEXT].strip()} "
         context_data.append(chunk)
     context[DATA] = context_data
     return context
@@ -67,7 +67,7 @@ def get_entities_iterators(intent_entities, language,
                            add_builtin_entities_examples, random_state):
     from snips_nlu_parsers import get_builtin_entity_examples
 
-    entities_its = dict()
+    entities_its = {}
     for entity_name, entity in iteritems(intent_entities):
         utterance_values = random_state.permutation(sorted(entity[UTTERANCES]))
         if add_builtin_entities_examples and is_builtin_entity(entity_name):

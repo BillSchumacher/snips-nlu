@@ -41,9 +41,7 @@ class Featurizer(ProcessingUnit):
 
     @property
     def fitted(self):
-        if not self.tfidf_vectorizer or not self.tfidf_vectorizer.vocabulary:
-            return False
-        return True
+        return bool(self.tfidf_vectorizer and self.tfidf_vectorizer.vocabulary)
 
     @property
     def feature_index_to_feature_name(self):
@@ -54,17 +52,17 @@ class Featurizer(ProcessingUnit):
             dict: a dict mapping feature indices to printable features names
         """
         if not self.fitted:
-            return dict()
+            return {}
 
         index = {
-            i: "ngram:%s" % ng
+            i: f"ngram:{ng}"
             for ng, i in iteritems(self.tfidf_vectorizer.vocabulary)
         }
-        num_ng = len(index)
         if self.cooccurrence_vectorizer is not None:
+            num_ng = len(index)
             for word_pair, j in iteritems(
                     self.cooccurrence_vectorizer.word_pairs):
-                index[j + num_ng] = "pair:%s+%s" % (word_pair[0], word_pair[1])
+                index[j + num_ng] = f"pair:{word_pair[0]}+{word_pair[1]}"
         return index
 
     def fit(self, dataset, utterances, classes, none_class):
@@ -118,12 +116,15 @@ class Featurizer(ProcessingUnit):
             raise _EmptyDatasetUtterancesError(
                 "Dataset is empty or with empty utterances")
         _, tfidf_pval = chi2(x_tfidf, y)
-        best_tfidf_features = set(i for i, v in enumerate(tfidf_pval)
-                                  if v < self.config.pvalue_threshold)
+        best_tfidf_features = {
+            i for i, v in enumerate(tfidf_pval) if v < self.config.pvalue_threshold
+        }
         if not best_tfidf_features:
-            best_tfidf_features = set(
-                idx for idx, val in enumerate(tfidf_pval) if
-                val == tfidf_pval.min())
+            best_tfidf_features = {
+                idx
+                for idx, val in enumerate(tfidf_pval)
+                if val == tfidf_pval.min()
+            }
 
         best_ngrams = [ng for ng, i in
                        iteritems(self.tfidf_vectorizer.vocabulary)
@@ -210,8 +211,7 @@ class Featurizer(ProcessingUnit):
 
         model_path = path / "featurizer.json"
         if not model_path.exists():
-            raise LoadingError("Missing featurizer model file: %s"
-                               % model_path.name)
+            raise LoadingError(f"Missing featurizer model file: {model_path.name}")
         with model_path.open("r", encoding="utf-8") as f:
             featurizer_dict = json.load(f)
 
@@ -268,8 +268,9 @@ class TfidfVectorizer(ProcessingUnit):
 
         self._language = dataset[LANGUAGE]
         self._init_vectorizer(self._language)
-        self.builtin_entity_scope = set(
-            e for e in dataset[ENTITIES] if is_builtin_entity(e))
+        self.builtin_entity_scope = {
+            e for e in dataset[ENTITIES] if is_builtin_entity(e)
+        }
         preprocessed_data = self._preprocess(x)
         utterances = [
             self._enrich_utterance(u, builtin_ents, custom_ents, w_clusters)
@@ -300,8 +301,9 @@ class TfidfVectorizer(ProcessingUnit):
 
         self._language = dataset[LANGUAGE]
         self._init_vectorizer(self._language)
-        self.builtin_entity_scope = set(
-            e for e in dataset[ENTITIES] if is_builtin_entity(e))
+        self.builtin_entity_scope = {
+            e for e in dataset[ENTITIES] if is_builtin_entity(e)
+        }
         preprocessed_data = self._preprocess(x)
         utterances = [
             self._enrich_utterance(u, builtin_ents, custom_ents, w_clusters)
@@ -433,11 +435,10 @@ class TfidfVectorizer(ProcessingUnit):
         ngrams = set(ngrams)
         vocab = self.vocabulary
         existing_ngrams = set(vocab)
-        extra_values = ngrams - existing_ngrams
-
-        if extra_values:
-            raise ValueError("Invalid ngrams %s, expected values in word_pairs"
-                             % sorted(extra_values))
+        if extra_values := ngrams - existing_ngrams:
+            raise ValueError(
+                f"Invalid ngrams {sorted(extra_values)}, expected values in word_pairs"
+            )
 
         new_ngrams, new_index = zip(*sorted((ng, vocab[ng]) for ng in ngrams))
 
@@ -500,7 +501,6 @@ class TfidfVectorizer(ProcessingUnit):
         self.persist_metadata(path)
 
     @classmethod
-    # pylint: disable=W0212
     def from_path(cls, path, **shared):
         import numpy as np
         import scipy.sparse as sp
@@ -511,8 +511,7 @@ class TfidfVectorizer(ProcessingUnit):
 
         model_path = path / "vectorizer.json"
         if not model_path.exists():
-            raise LoadingError("Missing vectorizer model file: %s"
-                               % model_path.name)
+            raise LoadingError(f"Missing vectorizer model file: {model_path.name}")
         with model_path.open("r", encoding="utf-8") as f:
             vectorizer_dict = json.load(f)
 
@@ -594,15 +593,15 @@ class CooccurrenceVectorizer(ProcessingUnit):
         self.fit_custom_entity_parser_if_needed(dataset)
 
         self._language = dataset[LANGUAGE]
-        self.builtin_entity_scope = set(
-            e for e in dataset[ENTITIES] if is_builtin_entity(e))
+        self.builtin_entity_scope = {
+            e for e in dataset[ENTITIES] if is_builtin_entity(e)
+        }
 
         preprocessed = self._preprocess(list(x))
         utterances = [
             self._enrich_utterance(utterance, builtin_ents, custom_ent)
             for utterance, builtin_ents, custom_ent in zip(*preprocessed)]
-        word_pairs = set(
-            p for u in utterances for p in self._extract_word_pairs(u))
+        word_pairs = {p for u in utterances for p in self._extract_word_pairs(u)}
         self._word_pairs = {
             pair: i for i, pair in enumerate(sorted(word_pairs))
         }
@@ -724,12 +723,10 @@ class CooccurrenceVectorizer(ProcessingUnit):
         """
         word_pairs = set(word_pairs)
         existing_pairs = set(self.word_pairs)
-        extra_values = word_pairs - existing_pairs
-
-        if extra_values:
+        if extra_values := word_pairs - existing_pairs:
             raise ValueError(
-                "Invalid word pairs %s, expected values in word_pairs"
-                % sorted(extra_values))
+                f"Invalid word pairs {sorted(extra_values)}, expected values in word_pairs"
+            )
 
         self._word_pairs = {
             ng: new_i for new_i, ng in enumerate(sorted(word_pairs))
@@ -763,13 +760,11 @@ class CooccurrenceVectorizer(ProcessingUnit):
         self.persist_metadata(path)
 
     @classmethod
-    # pylint: disable=protected-access
     def from_path(cls, path, **shared):
         path = Path(path)
         model_path = path / "vectorizer.json"
         if not model_path.exists():
-            raise LoadingError("Missing vectorizer model file: %s"
-                               % model_path.name)
+            raise LoadingError(f"Missing vectorizer model file: {model_path.name}")
 
         with model_path.open(encoding="utf8") as f:
             vectorizer_dict = json.load(f)
@@ -805,9 +800,7 @@ def _builtin_entity_to_feature(builtin_entity_label, language):
 def _normalize_stem(text, language, resources, use_stemming):
     from snips_nlu_utils import normalize
 
-    if use_stemming:
-        return stem(text, language, resources)
-    return normalize(text)
+    return stem(text, language, resources) if use_stemming else normalize(text)
 
 
 def _get_word_cluster_features(query_tokens, clusters_name, resources):

@@ -49,20 +49,16 @@ def validate_and_format_dataset(dataset):
     language = dataset[LANGUAGE]
     validate_type(language, str, object_label="language")
     if language not in get_all_languages():
-        raise DatasetFormatError("Unknown language: '%s'" % language)
+        raise DatasetFormatError(f"Unknown language: '{language}'")
 
-    dataset[INTENTS] = {
-        intent_name: intent_data
-        for intent_name, intent_data in sorted(iteritems(dataset[INTENTS]))}
+    dataset[INTENTS] = dict(sorted(iteritems(dataset[INTENTS])))
     for intent in itervalues(dataset[INTENTS]):
         _validate_and_format_intent(intent, dataset[ENTITIES])
 
     utterance_entities_values = extract_utterance_entities(dataset)
     builtin_entity_parser = BuiltinEntityParser.build(dataset=dataset)
 
-    dataset[ENTITIES] = {
-        intent_name: entity_data
-        for intent_name, entity_data in sorted(iteritems(dataset[ENTITIES]))}
+    dataset[ENTITIES] = dict(sorted(iteritems(dataset[ENTITIES])))
 
     for entity_name, entity in iteritems(dataset[ENTITIES]):
         uterrance_entities = utterance_entities_values[entity_name]
@@ -145,10 +141,10 @@ def _validate_and_format_custom_entity(entity, utterance_entities, language,
     validate_type(entity[MATCHING_STRICTNESS], (float, int),
                   object_label="matching_strictness")
 
-    formatted_entity = dict()
-    formatted_entity[AUTOMATICALLY_EXTENSIBLE] = entity[
-        AUTOMATICALLY_EXTENSIBLE]
-    formatted_entity[MATCHING_STRICTNESS] = entity[MATCHING_STRICTNESS]
+    formatted_entity = {
+        AUTOMATICALLY_EXTENSIBLE: entity[AUTOMATICALLY_EXTENSIBLE],
+        MATCHING_STRICTNESS: entity[MATCHING_STRICTNESS],
+    }
     if LICENSE_INFO in entity:
         formatted_entity[LICENSE_INFO] = entity[LICENSE_INFO]
     use_synonyms = entity[USE_SYNONYMS]
@@ -171,7 +167,7 @@ def _validate_and_format_custom_entity(entity, utterance_entities, language,
     formatted_entity[CAPITALIZE] = _has_any_capitalization(utterance_entities,
                                                            language)
 
-    validated_utterances = dict()
+    validated_utterances = {}
     # Map original values an synonyms
     for data in entity[DATA]:
         ent_value = data[VALUE]
@@ -204,17 +200,19 @@ def _validate_and_format_custom_entity(entity, utterance_entities, language,
     variations_args["numbers"] = len(
         entity[DATA]) < NUMBER_VARIATIONS_THRESHOLD
 
-    variations = dict()
+    variations = {}
     for data in entity[DATA]:
         ent_value = data[VALUE]
         values_to_variate = {ent_value}
         if use_synonyms:
             values_to_variate.update(set(data[SYNONYMS]))
-        variations[ent_value] = set(
-            v for value in values_to_variate
+        variations[ent_value] = {
+            v
+            for value in values_to_variate
             for v in get_string_variations(
-                value, language, builtin_entity_parser, **variations_args)
-        )
+                value, language, builtin_entity_parser, **variations_args
+            )
+        }
     variation_counter = Counter(
         [v for variations_ in itervalues(variations) for v in variations_])
     non_colliding_variations = {

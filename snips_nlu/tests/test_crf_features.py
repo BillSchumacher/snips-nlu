@@ -29,7 +29,7 @@ class TestCRFFeatures(SnipsTest):
         # Given
         def fn(tokens, token_index):
             value = tokens[token_index].value
-            return "%s_%s" % (value, len(value))
+            return f"{value}_{len(value)}"
 
         cache = [{TOKEN_NAME: token} for token in
                  tokenize("hello beautiful world", LANGUAGE_EN)]
@@ -45,7 +45,7 @@ class TestCRFFeatures(SnipsTest):
         # Given
         def fn(tokens, token_index):
             value = tokens[token_index].value
-            return "%s_%s" % (value, len(value))
+            return f"{value}_{len(value)}"
 
         cache = [{TOKEN_NAME: token} for token in
                  tokenize("hello beautiful world", LANGUAGE_EN)]
@@ -61,7 +61,7 @@ class TestCRFFeatures(SnipsTest):
         # Given
         def fn(tokens, token_index):
             value = tokens[token_index].value
-            return "%s_%s" % (value, len(value))
+            return f"{value}_{len(value)}"
 
         mocked_fn = MagicMock(side_effect=fn)
 
@@ -85,11 +85,15 @@ class TestCRFFeatures(SnipsTest):
 
     def test_single_feature_factory(self):
         # Given
+
+
+
         @CRFFeatureFactory.register("my_factory", override=True)
         class MySingleFeatureFactory(SingleFeatureFactory):
             def compute_feature(self, tokens, token_index):
                 value = tokens[token_index].value
-                return "%s_%s" % (value, len(value))
+                return f"{value}_{len(value)}"
+
 
         config = {
             "factory_name": "my_factory",
@@ -423,7 +427,7 @@ utterances:
             "my first entity and second_entity and third_entity",
             LANGUAGE_EN)
         cache = [{TOKEN_NAME: token} for token in tokens]
-        resources = {STEMS: dict()}
+        resources = {STEMS: {}}
         custom_entity_parser = CustomEntityParser.build(
             dataset, CustomEntityParserUsage.WITH_STEMS, resources)
         factory = CRFFeatureFactory.from_config(
@@ -497,7 +501,7 @@ automatically_extensible: false""")
         tokens = tokenize(
             "my first entity and second_entity and third_entity", LANGUAGE_EN)
         cache = [{TOKEN_NAME: token} for token in tokens]
-        resources = {STEMS: dict()}
+        resources = {STEMS: {}}
         custom_entity_parser = CustomEntityParser.build(
             dataset, CustomEntityParserUsage.WITH_STEMS, resources)
         factory = CRFFeatureFactory.from_config(
@@ -600,10 +604,14 @@ automatically_extensible: false""")
     def test_custom_single_feature_factory(self):
         # Given
         # pylint:disable=unused-variable
+
+
+
         @CRFFeatureFactory.register("my_single_feature", override=True)
         class MySingleFeatureFactory(SingleFeatureFactory):
             def compute_feature(self, tokens, token_index):
-                return "(%s)[my_feature]" % tokens[token_index].value
+                return f"({tokens[token_index].value})[my_feature]"
+
 
         # pylint:enable=unused-variable
 
@@ -632,6 +640,9 @@ automatically_extensible: false""")
         # Given
 
         # pylint:disable=unused-variable
+
+
+
         @CRFFeatureFactory.register("my_multi_feature_factory", override=True)
         class MyMultiFeature(CRFFeatureFactory):
             def build_features(self):
@@ -645,11 +656,12 @@ automatically_extensible: false""")
 
             @staticmethod
             def compute_feature_1(tokens, token_index):
-                return "(%s)[my_feature_1]" % tokens[token_index].value
+                return f"({tokens[token_index].value})[my_feature_1]"
 
             @staticmethod
             def compute_feature_2(tokens, token_index):
-                return "(%s)[my_feature_2]" % tokens[token_index].value
+                return f"({tokens[token_index].value})[my_feature_2]"
+
 
         # pylint:enable=unused-variable
 
@@ -678,10 +690,14 @@ automatically_extensible: false""")
 
     def test_factory_from_config(self):
         # Given
+
+
+
         @CRFFeatureFactory.register("my_custom_feature")
         class MySingleFeatureFactory(SingleFeatureFactory):
             def compute_feature(self, tokens, token_index):
-                return "(%s)[my_custom_feature]" % tokens[token_index].value
+                return f"({tokens[token_index].value})[my_custom_feature]"
+
 
         config = {
             "factory_name": "my_custom_feature",
